@@ -1,0 +1,114 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "all",
+  "dataset_name": "s_pa_rc",
+  "dataset_size": 4679931,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/lkaesberg/SPaRC@195579019ab44fce4f394bb03af04bf598956e4b/puzzle_all_train.jsonl": {
+      "num_bytes": 2232864,
+      "checksum": null
+    },
+    "hf://datasets/lkaesberg/SPaRC@195579019ab44fce4f394bb03af04bf598956e4b/puzzle_all_test.jsonl": {
+      "num_bytes": 2312134,
+      "checksum": null
+    }
+  },
+  "download_size": 4544998,
+  "features": {
+    "difficulty_level": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "difficulty_score": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "grid_size": {
+      "height": {
+        "dtype": "int64",
+        "_type": "Value"
+      },
+      "width": {
+        "dtype": "int64",
+        "_type": "Value"
+      }
+    },
+    "id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "polyshapes": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "puzzle_array": {
+      "feature": {
+        "feature": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "_type": "List"
+      },
+      "_type": "List"
+    },
+    "solution_count": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "solutions": {
+      "feature": {
+        "index": {
+          "dtype": "int64",
+          "_type": "Value"
+        },
+        "path": {
+          "feature": {
+            "x": {
+              "dtype": "int64",
+              "_type": "Value"
+            },
+            "y": {
+              "dtype": "int64",
+              "_type": "Value"
+            }
+          },
+          "_type": "List"
+        },
+        "pathLength": {
+          "dtype": "int64",
+          "_type": "Value"
+        }
+      },
+      "_type": "List"
+    },
+    "text_visualization": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 9224929,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 2296815,
+      "num_examples": 500,
+      "dataset_name": "s_pa_rc"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 2383116,
+      "num_examples": 500,
+      "dataset_name": "s_pa_rc"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

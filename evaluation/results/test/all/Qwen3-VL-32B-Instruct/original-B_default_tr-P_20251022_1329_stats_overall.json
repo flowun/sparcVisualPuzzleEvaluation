@@ -1,0 +1,46 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "original",
+  "prompt_type": "default_tr",
+  "model": "Qwen/Qwen3-VL-32B-Instruct",
+  "model_sha": "latest",
+  "accuracy": 0.018,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.05813953488372093,
+    "2": 0.01694915254237288,
+    "3": 0.008264462809917356,
+    "4": 0.011627906976744186,
+    "5": 0.0
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.932,
+    "connected_line": 0.918,
+    "non_intersecting_line": 0.912,
+    "no_rule_crossing": 0.13,
+    "fully_valid_path": 0.118
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "avg_path_length": 176.89,
+  "total_requests": 500,
+  "timestamp": "20251022_1329",
+  "evaluation_duration_seconds": 12433.391709566116,
+  "token_usage": {
+    "prompt_tokens": 633498,
+    "completion_tokens": 9244533,
+    "total_tokens": 9878031
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1266.996,
+    "completion_tokens": 18489.066,
+    "total_tokens": 19756.062
+  },
+  "temperature": 0.6,
+  "max_tokens": 50000,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200
+}

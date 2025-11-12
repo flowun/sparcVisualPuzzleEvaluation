@@ -1,0 +1,73 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "original",
+  "prompt_type": "prompt_engineering",
+  "model": "Qwen/Qwen3-VL-32B-Instruct",
+  "model_sha": "latest",
+  "accuracy": 0.004,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.0,
+    "2": 0.00847457627118644,
+    "3": 0.008264462809917356,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.052,
+    "connected_line": 0.702,
+    "non_intersecting_line": 0.904,
+    "no_rule_crossing": 0.822,
+    "fully_valid_path": 0.032
+  },
+  "avg_difficulty_score": 2.426830354901738,
+  "avg_difficulty_level": 2.94,
+  "avg_path_length": 251.898,
+  "total_requests": 500,
+  "timestamp": "20251023_1420",
+  "evaluation_duration_seconds": 11667.546904802322,
+  "token_usage": {
+    "prompt_tokens": 898407,
+    "completion_tokens": 8307869,
+    "total_tokens": 9206276
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1796.814,
+    "completion_tokens": 16615.738,
+    "total_tokens": 18412.552
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1663.0813953488373,
+      "completion_tokens": 10744.023255813954,
+      "total_tokens": 12407.10465116279
+    },
+    "2": {
+      "prompt_tokens": 1742.2796610169491,
+      "completion_tokens": 16148.338983050848,
+      "total_tokens": 17890.618644067796
+    },
+    "3": {
+      "prompt_tokens": 1766.5289256198348,
+      "completion_tokens": 16883.090909090908,
+      "total_tokens": 18649.619834710742
+    },
+    "4": {
+      "prompt_tokens": 1866.1176470588234,
+      "completion_tokens": 19285.105882352942,
+      "total_tokens": 21151.223529411764
+    },
+    "5": {
+      "prompt_tokens": 1993.5168539325844,
+      "completion_tokens": 20183.044943820223,
+      "total_tokens": 22176.56179775281
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 50000,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200
+}

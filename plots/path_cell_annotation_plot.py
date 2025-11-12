@@ -1,0 +1,1 @@
+# same as original plot, but walkable path cells are annotated with coordinates (x,y), start and end cells are labeled, Gap is labeled
