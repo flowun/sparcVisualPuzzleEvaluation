@@ -3,3 +3,4 @@ test.py
 evaluation/visualization/
 .idea/
 __pycache__/
+EVALUATION_GUIDE.md

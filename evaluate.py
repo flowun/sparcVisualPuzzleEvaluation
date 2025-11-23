@@ -3,7 +3,6 @@ import asyncio
 import json
 import time
 from tqdm import tqdm
-
 from datasets import load_dataset
 from datetime import datetime
 
@@ -12,6 +11,7 @@ from sparc.validation import extract_solution_path, validate_solution, analyze_p
 from parallel_image_creation import create_board_images_in_parallel
 from prompts.payload import create_payload_with_image
 from evaluation.request_queue import RequestQueueAsync
+import argparse
 
 
 def evaluate(model, model_sha="latest", split="test", subset="all", board_type="original", prompt_type="default", api_port=8000, max_concurrent_requests=5, temperature=0.6, max_tokens=10000, top_p=0.95, top_k=20):
@@ -179,23 +179,38 @@ if __name__ == "__main__":
         "Qwen/Qwen3-VL-8B-Thinking": "41ea130ce6eaaf7829c72dfc0e4597d49741ed18",
         "Qwen/Qwen3-VL-32B-Instruct": "0cfaf48183f594c314753d30a4c4974bc75f3ccb",
         "Qwen/Qwen3-VL-32B-Thinking": "7edd10ffd1196091948fb245ff63e406ccb2d4d1",
+        "Qwen/Qwen3-VL-30B-A3B-Thinking": "7e9bbfa2c1b2059edd18160793fd421194da2c10",
         "Qwen/Qwen3-VL-235B-A22B-Instruct-FP8": "d464a056915e088a7621533813ed553ceea73a6e",
     }
-    model = "Qwen/Qwen3-VL-32B-Thinking"
-    port = 8002
-    evaluate(
-        model=model,
-        model_sha=model_version_dict.get(model, "latest"),
-        split="test",
-        subset="all",
-        board_type="original",
-        prompt_type="prompt_engineering",
-        api_port=port,
-        temperature=0.6,
-        max_tokens=81920,
-        max_concurrent_requests=200,
-    )
 
-# with 200 concurrent requests:
-# Qwen/Qwen3-VL-32B-Thinking on 4x A100 40GB (80GB similar): 3200 tokens/s at the start, 1000 tokens/s later when 60 batches are running
-# 1/10 less batch size --> approx. 10% less throughput
+    parser = argparse.ArgumentParser(description="Evaluate SPaRC puzzles with a vision-language model.")
+    parser.add_argument("--model", default="Qwen/Qwen3-VL-30B-A3B-Thinking", help="Full model name.")
+    parser.add_argument("--model-sha", default=None, help="Override model SHA, otherwise resolved via mapping or 'latest'.")
+    parser.add_argument("--board-type", default="original", help="Board visualization type.")
+    parser.add_argument("--prompt-type", default="default_tr", help="Prompt template type.")
+    parser.add_argument("--subset", default="all", help="Dataset subset.")
+    parser.add_argument("--split", default="test", help="Dataset split.")
+    parser.add_argument("--api-port", type=int, default=8000, help="Local API port.")
+    parser.add_argument("--temperature", type=float, default=0.6, help="Sampling temperature.")
+    parser.add_argument("--max-tokens", type=int, default=81920, help="Max completion tokens.")
+    parser.add_argument("--top-p", type=float, default=0.95, help="Top-p nucleus sampling.")
+    parser.add_argument("--top-k", type=int, default=20, help="Top-k sampling.")
+    parser.add_argument("--max-concurrent-requests", type=int, default=200, help="Concurrency limit.")
+    args = parser.parse_args()
+
+    resolved_model_sha = args.model_sha or model_version_dict.get(args.model, "latest")
+
+    evaluate(
+        model=args.model,
+        model_sha=resolved_model_sha,
+        split=args.split,
+        subset=args.subset,
+        board_type=args.board_type,
+        prompt_type=args.prompt_type,
+        api_port=args.api_port,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        top_p=args.top_p,
+        top_k=args.top_k,
+        max_concurrent_requests=args.max_concurrent_requests,
+    )
