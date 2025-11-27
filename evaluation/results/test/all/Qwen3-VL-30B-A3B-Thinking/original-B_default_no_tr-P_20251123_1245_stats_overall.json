@@ -1,0 +1,73 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "original",
+  "prompt_type": "default_no_tr",
+  "model": "Qwen/Qwen3-VL-30B-A3B-Thinking",
+  "model_sha": "7e9bbfa2c1b2059edd18160793fd421194da2c10",
+  "accuracy": 0.0,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.004,
+    "connected_line": 0.408,
+    "non_intersecting_line": 0.396,
+    "no_rule_crossing": 0.024,
+    "fully_valid_path": 0.0
+  },
+  "avg_difficulty_score": 1.036322829695425,
+  "avg_difficulty_level": 1.256,
+  "avg_path_length": 16.77,
+  "total_requests": 500,
+  "timestamp": "20251123_1245",
+  "evaluation_duration_seconds": 2454.3205914497375,
+  "token_usage": {
+    "prompt_tokens": 211272,
+    "completion_tokens": 3135531,
+    "total_tokens": 3346803
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 422.544,
+    "completion_tokens": 6271.062,
+    "total_tokens": 6693.606
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 851.7837837837837,
+      "completion_tokens": 12676.243243243243,
+      "total_tokens": 13528.027027027027
+    },
+    "2": {
+      "prompt_tokens": 930.4528301886793,
+      "completion_tokens": 14152.584905660377,
+      "total_tokens": 15083.037735849057
+    },
+    "3": {
+      "prompt_tokens": 961.3125,
+      "completion_tokens": 14705.145833333334,
+      "total_tokens": 15666.458333333334
+    },
+    "4": {
+      "prompt_tokens": 1062.2058823529412,
+      "completion_tokens": 16704.617647058825,
+      "total_tokens": 17766.823529411766
+    },
+    "5": {
+      "prompt_tokens": 1175.219512195122,
+      "completion_tokens": 15673.634146341463,
+      "total_tokens": 16848.853658536584
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200
+}

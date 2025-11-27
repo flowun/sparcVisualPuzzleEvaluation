@@ -3,17 +3,15 @@ import json
 
 from datasets import load_dataset
 
-from objects.board import Board, get_board_from_data
-from plots.plot import Plot, get_plot_class
+from objects.board import get_board_from_data
+from plots.plot import get_plot_class
 
-# model = "Qwen/Qwen3-VL-8B-Thinking"
-model = "Qwen/Qwen3-VL-32B-Instruct"
+model = "Qwen/Qwen3-VL-235B-A22B-Thinking-FP8"
 board_type = "original"
-prompt_type = "default"
+prompt_type = "default_tr"
 subset = "all"
 split = "test"
-# evaluation_file = f"{board_type}-board_{prompt_type}-prompt_20251021_1228_stats_individual"
-evaluation_file = "coordinate_grid-B_default-P_20251022_1429_stats_individual"
+evaluation_file = "original-B_default_tr-P_20251127_0427_stats_individual"
 evaluation_file_path = f"results/{split}/{subset}/{model.split('/')[-1]}/{evaluation_file}"
 dataset_revision = "195579019ab44fce4f394bb03af04bf598956e4b"
 tmp_folder = "../data/.tmp"
@@ -73,12 +71,6 @@ def cleanup_tmp_folder(tmp_folder):
                     os.remove(file_path)
             except Exception as e:
                 print(f"Error deleting file {file_path}: {e}")
-        """
-        try:
-            os.rmdir(tmp_folder)
-        except OSError as e:
-            print(f"Error removing directory {tmp_folder}: {e}")
-        """
 
 class ModelBehaviourExplorerGUI:
     def __init__(self, dataset, eval_results):

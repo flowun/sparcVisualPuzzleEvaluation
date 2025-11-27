@@ -11,7 +11,7 @@ def decode_base64_to_image(b64_string, output_path):
     with open(output_path, "wb") as f:
         f.write(base64.b64decode(b64_string))
 
-def create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=10000, top_p=0.95, top_k=20):
+def create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=10000, top_p=0.95, top_k=20, seed=42):
     text_prompt = get_prompt(prompt_type, board_type, data)
     b64_image = encode_image_to_base64(image_path)
     payload = {
@@ -37,6 +37,7 @@ def create_payload_with_image(prompt_type, board_type, image_path, data, model, 
         "temperature": temperature,
         "top_p": top_p,
         "top_k": top_k,
+        "seed": seed,
     }
     return payload
 

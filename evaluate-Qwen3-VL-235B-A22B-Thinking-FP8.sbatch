@@ -34,6 +34,7 @@ MAX_TOKENS="${MAX_TOKENS:-81920}"
 TOP_P="${TOP_P:-0.95}"
 TOP_K="${TOP_K:-20}"
 MAX_CONCURRENT_REQUESTS="${MAX_CONCURRENT_REQUESTS:-20}"
+SEED="${SEED:-42}"
 
 
 module purge
@@ -101,4 +102,5 @@ python evaluate.py \
   --max-tokens "$MAX_TOKENS" \
   --top-p "$TOP_P" \
   --top-k "$TOP_K" \
-  --max-concurrent-requests "$MAX_CONCURRENT_REQUESTS"
+  --max-concurrent-requests "$MAX_CONCURRENT_REQUESTS" \
+  --seed "$SEED"

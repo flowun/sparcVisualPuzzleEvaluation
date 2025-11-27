@@ -44,6 +44,7 @@ MAX_TOKENS="${MAX_TOKENS:-81920}"
 TOP_P="${TOP_P:-0.95}"
 TOP_K="${TOP_K:-20}"
 MAX_CONCURRENT_REQUESTS="${MAX_CONCURRENT_REQUESTS:-200}"
+SEED="${SEED:-42}"
 
 echo "Starting Vllm Api"
 
@@ -96,4 +97,4 @@ python evaluate.py \
   --top-p "$TOP_P" \
   --top-k "$TOP_K" \
   --max-concurrent-requests "$MAX_CONCURRENT_REQUESTS" \
-  >"$LOG_DIR/evaluate_${SLURM_JOB_ID:-$$}.log" 2>&1
+  --seed "$SEED"

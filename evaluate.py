@@ -14,7 +14,7 @@ from evaluation.request_queue import RequestQueueAsync
 import argparse
 
 
-def evaluate(model, model_sha="latest", split="test", subset="all", board_type="original", prompt_type="default", api_port=8000, max_concurrent_requests=5, temperature=0.6, max_tokens=10000, top_p=0.95, top_k=20):
+def evaluate(model, model_sha="latest", split="test", subset="all", board_type="original", prompt_type="default", api_port=8000, max_concurrent_requests=5, temperature=0.6, max_tokens=10000, top_p=0.95, top_k=20, seed=42):
     start_time = time.time()
     # preparation
     dataset_revision = "195579019ab44fce4f394bb03af04bf598956e4b"
@@ -86,7 +86,7 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
         with tqdm(total=len(dataset), desc="Evaluating") as pbar:
             for data in dataset:
                 image_path = os.path.join(board_visualization_dir, data['id'] + ".png")
-                json_request = create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=max_tokens, top_p=top_p, top_k=top_k)
+                json_request = create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=max_tokens, top_p=top_p, top_k=top_k, seed=seed)
                 await request_queue.add_request_async(json_request, make_callback(data, pbar))
 
             await request_queue.queue.join()  # wait until all tasks are processed
@@ -154,6 +154,7 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
             "top_p": top_p,
             "top_k": top_k,
             "max_concurrent_requests": max_concurrent_requests,
+            "seed": seed,
         }
         print("Accuracy:", stats["accuracy"], "Avg. Accuracy by Difficulty:", stats["avg_accuracy_by_difficulty_level"])
     except:
@@ -181,10 +182,11 @@ if __name__ == "__main__":
         "Qwen/Qwen3-VL-32B-Thinking": "7edd10ffd1196091948fb245ff63e406ccb2d4d1",
         "Qwen/Qwen3-VL-30B-A3B-Thinking": "7e9bbfa2c1b2059edd18160793fd421194da2c10",
         "Qwen/Qwen3-VL-235B-A22B-Instruct-FP8": "d464a056915e088a7621533813ed553ceea73a6e",
+        "Qwen/Qwen3-VL-235B-A22B-Thinking-FP8": "c6c469b4fb011e422f962f98b457743dbd6e7052"
     }
 
     parser = argparse.ArgumentParser(description="Evaluate SPaRC puzzles with a vision-language model.")
-    parser.add_argument("--model", default="Qwen/Qwen3-VL-30B-A3B-Thinking", help="Full model name.")
+    parser.add_argument("--model", default="Qwen/Qwen3-VL-235B-A22B-Instruct-FP8", help="Full model name.")
     parser.add_argument("--model-sha", default=None, help="Override model SHA, otherwise resolved via mapping or 'latest'.")
     parser.add_argument("--board-type", default="original", help="Board visualization type.")
     parser.add_argument("--prompt-type", default="default_tr", help="Prompt template type.")
@@ -196,6 +198,7 @@ if __name__ == "__main__":
     parser.add_argument("--top-p", type=float, default=0.95, help="Top-p nucleus sampling.")
     parser.add_argument("--top-k", type=int, default=20, help="Top-k sampling.")
     parser.add_argument("--max-concurrent-requests", type=int, default=200, help="Concurrency limit.")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducible runs.")
     args = parser.parse_args()
 
     resolved_model_sha = args.model_sha or model_version_dict.get(args.model, "latest")
@@ -213,4 +216,5 @@ if __name__ == "__main__":
         top_p=args.top_p,
         top_k=args.top_k,
         max_concurrent_requests=args.max_concurrent_requests,
+        seed=args.seed,
     )
