@@ -1,0 +1,104 @@
+#!/bin/bash
+###############################################################################
+# SLURM DIRECTIVES
+###############################################################################
+#SBATCH --job-name=Qwen3-VL-235B-fp8-evaluation
+#SBATCH --partition=scc-gpu
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH -G A100:4
+#SBATCH -C 80gb_vram
+#SBATCH --time=24:00:00
+#SBATCH --mem=128G
+#SBATCH -c 64
+#SBATCH --output=logs/%x-%j.out
+#SBATCH -C inet
+
+set -euo pipefail
+echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
+
+PORT="${LLM_PORT:-$((8000 + (SLURM_JOB_ID % 1000)))}"
+TP_SIZE="${SLURM_GPUS_ON_NODE}"
+GPU_UTIL="${LLM_GPU_UTIL:-0.95}"
+HF_HOME="${HF_HOME:-$SCRATCH/huggingface}"
+VENV_VLLM="$HOME/.venv_llm"
+
+# MODEL="${MODEL:-Qwen/Qwen3-VL-235B-A22B-Instruct-FP8}"
+MODEL="${MODEL:-Qwen/Qwen3-VL-235B-A22B-Thinking-FP8}"
+BOARD_TYPE="${BOARD_TYPE:-original}"
+PROMPT_TYPE="${PROMPT_TYPE:-default_tr}"
+SUBSET="${SUBSET:-all}"
+SPLIT="${SPLIT:-test}"
+TEMPERATURE="${TEMPERATURE:-0.6}"
+MAX_TOKENS="${MAX_TOKENS:-81920}"
+TOP_P="${TOP_P:-0.95}"
+TOP_K="${TOP_K:-20}"
+MAX_CONCURRENT_REQUESTS="${MAX_CONCURRENT_REQUESTS:-20}"
+
+
+module purge
+export HF_HOME; mkdir -p "$HF_HOME" logs
+module load miniforge3
+source activate vllmPolyfill
+
+VLLM_FORCE_TORCH_COMPILE=1
+# try this next to save it at a different space so that i dont have to delete the cache manually
+# export VLLM_TORCH_COMPILE_CACHE_DIR="$SCRATCH/vllm_compile_cache"
+# mkdir -p "$VLLM_TORCH_COMPILE_CACHE_DIR"
+
+
+LOG_DIR="$PWD/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/vllm_Qwen3-VL-235B-fp8_${SLURM_JOB_ID:-$$}.log"
+touch $LOG_FILE
+
+python -u -m vllm.entrypoints.openai.api_server \
+       --model "$MODEL" \
+       --port "$PORT" \
+       --tensor-parallel-size "$TP_SIZE" \
+       --gpu-memory-utilization "$GPU_UTIL" \
+       --trust-remote-code \
+       --limit-mm-per-prompt.video 0 \
+       --enable-expert-parallel \
+       >"$LOG_FILE" 2>&1 &
+SERVER_PID=$!
+
+cleanup() {
+  echo "[$(date +%T)] Cleaning up…"
+  kill -SIGINT "$SERVER_PID" 2>/dev/null || true
+  wait "$SERVER_PID" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+# Health probe
+echo -n "⌛ Waiting for vLLM"
+for _ in {1..3600}; do
+  if curl -s "http://127.0.0.1:${PORT}/v1/models" >/dev/null; then
+    echo " … ready."
+    break
+  fi
+  printf "."; sleep 1
+done
+
+echo "✔ vLLM ready. Last 20 log lines:"
+tail -n 20 "$LOG_FILE"
+
+echo "[$(date +%F\ %T)] vLLM server running on port $PORT. Logs: $LOG_FILE"
+
+
+source activate sparcVisualPuzzleEval
+# Run evaluation with explicit CLI arguments
+echo "Starting Python Script"
+python evaluate.py \
+  --model "$MODEL" \
+  --model-sha "${MODEL_SHA:-}" \
+  --board-type "$BOARD_TYPE" \
+  --prompt-type "$PROMPT_TYPE" \
+  --subset "$SUBSET" \
+  --split "$SPLIT" \
+  --api-port "$PORT" \
+  --temperature "$TEMPERATURE" \
+  --max-tokens "$MAX_TOKENS" \
+  --top-p "$TOP_P" \
+  --top-k "$TOP_K" \
+  --max-concurrent-requests "$MAX_CONCURRENT_REQUESTS"
