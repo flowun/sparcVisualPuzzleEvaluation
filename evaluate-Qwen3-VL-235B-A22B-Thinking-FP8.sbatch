@@ -17,6 +17,8 @@
 set -euo pipefail
 echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
 
+# Launch example with arguments: sbatch --export=BOARD_TYPE="original",PROMPT_TYPE="default_tr" evaluate-Qwen3-VL-235B-A22B-Thinking-FP8.sbatch
+
 PORT="${LLM_PORT:-$((8000 + (SLURM_JOB_ID % 1000)))}"
 TP_SIZE="${SLURM_GPUS_ON_NODE}"
 GPU_UTIL="${LLM_GPU_UTIL:-0.95}"
@@ -33,20 +35,18 @@ TEMPERATURE="${TEMPERATURE:-0.6}"
 MAX_TOKENS="${MAX_TOKENS:-81920}"
 TOP_P="${TOP_P:-0.95}"
 TOP_K="${TOP_K:-20}"
-MAX_CONCURRENT_REQUESTS="${MAX_CONCURRENT_REQUESTS:-20}"
+MAX_CONCURRENT_REQUESTS="${MAX_CONCURRENT_REQUESTS:-25}"
 SEED="${SEED:-42}"
 
+# try this before imports to save it at a different space so that i dont have to delete the cache manually
+export VLLM_CACHE_ROOT="$SCRATCH/.cache/vllm"
+mkdir -p "$VLLM_CACHE_ROOT"
+rm -rf "$VLLM_CACHE_ROOT/torch_compile_cache"/*
 
 module purge
 export HF_HOME; mkdir -p "$HF_HOME" logs
 module load miniforge3
 source activate vllmPolyfill
-
-VLLM_FORCE_TORCH_COMPILE=1
-# try this next to save it at a different space so that i dont have to delete the cache manually
-# export VLLM_TORCH_COMPILE_CACHE_DIR="$SCRATCH/vllm_compile_cache"
-# mkdir -p "$VLLM_TORCH_COMPILE_CACHE_DIR"
-
 
 LOG_DIR="$PWD/logs"
 mkdir -p "$LOG_DIR"
