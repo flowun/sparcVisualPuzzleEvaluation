@@ -1,0 +1,74 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "text",
+  "prompt_type": "prompt_engineering",
+  "model": "Qwen/Qwen3-VL-235B-A22B-Thinking-FP8",
+  "model_sha": "c6c469b4fb011e422f962f98b457743dbd6e7052",
+  "accuracy": 0.14,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.19767441860465115,
+    "2": 0.1864406779661017,
+    "3": 0.19008264462809918,
+    "4": 0.046511627906976744,
+    "5": 0.0449438202247191
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.994,
+    "connected_line": 0.89,
+    "non_intersecting_line": 0.97,
+    "no_rule_crossing": 0.958,
+    "fully_valid_path": 0.85
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "avg_path_length": 21.01,
+  "total_requests": 500,
+  "timestamp": "20251201_1127",
+  "evaluation_duration_seconds": 51694.83927345276,
+  "token_usage": {
+    "prompt_tokens": 974037,
+    "completion_tokens": 15300048,
+    "total_tokens": 16274085
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1948.074,
+    "completion_tokens": 30600.096,
+    "total_tokens": 32548.17
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1819.7674418604652,
+      "completion_tokens": 20003.24418604651,
+      "total_tokens": 21823.011627906977
+    },
+    "2": {
+      "prompt_tokens": 1891.135593220339,
+      "completion_tokens": 28662.601694915254,
+      "total_tokens": 30553.737288135595
+    },
+    "3": {
+      "prompt_tokens": 1914.6694214876034,
+      "completion_tokens": 31225.95867768595,
+      "total_tokens": 33140.628099173555
+    },
+    "4": {
+      "prompt_tokens": 2007.7558139534883,
+      "completion_tokens": 35711.476744186046,
+      "total_tokens": 37719.232558139534
+    },
+    "5": {
+      "prompt_tokens": 2135.2921348314608,
+      "completion_tokens": 37618.58426966292,
+      "total_tokens": 39753.87640449438
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 25,
+  "seed": 42
+}
