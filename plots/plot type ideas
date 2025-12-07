@@ -1,12 +1,5 @@
-original: Normal SPaRC grid how humans used it
-original + coordinate grid
-high contrast
+high/low contrast
 black and white/ greyscale but with letter in it for color
-image with textual representation (as in text-only version)
-image with textual representation (meaning described in each block)
-legend next to plot
-one-shot
-annotated grids
 full example game with white path
 instead of such shapes, use other things
 same width of path as rule cells and path coordinates
@@ -14,9 +7,3 @@ same width of path as rule cells and path coordinates
 
 mehr prompt engineering beim vision prompt möglich: verbesserungen wie auch bei text prompts: bei answer format auch #### hinschreiben im beispiel
 polyshapes are not provided (can currently only be seen)
-
-
------------
-
-- start und end marker
-- coordinates on grid

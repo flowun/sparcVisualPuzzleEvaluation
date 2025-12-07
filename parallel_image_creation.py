@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     split = "test"
     subset = "all"
-    plot_type = "path_cell_annotated"
+    plot_type = "black_frame_and_path_cell_annotated"
 
     dataset = load_dataset("lkaesberg/SPaRC", subset, split=split)
     create_board_images_in_parallel(dataset, split_savename=split, subset_savename=subset, plot_type=plot_type)

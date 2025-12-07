@@ -8,20 +8,44 @@ def get_plot_class(plot_type, board, **kwargs):
         from plots.original_plot import OriginalPlot
         return OriginalPlot(board, **kwargs)
     elif plot_type == "start_end_marked":
-        from plots.original_plot import StartEndMarkedPlot
+        from plots.start_end_marked_plot import StartEndMarkedPlot
         return StartEndMarkedPlot(board, **kwargs)
     elif plot_type == "coordinate_grid":
-        from plots.original_plot import CoordinateGridPlot
+        from plots.coordinate_grid_plot import CoordinateGridPlot
         return CoordinateGridPlot(board, **kwargs)
     elif plot_type == "coordinate_grid_and_start_end_marked":
-        from plots.original_plot import CoordinateGridAndStartEndMarkedPlot
+        from plots.coordinate_grid_plot import CoordinateGridAndStartEndMarkedPlot
         return CoordinateGridAndStartEndMarkedPlot(board, **kwargs)
     elif plot_type == "path_cell_annotated":
-        from plots.original_plot import PathCellAnnotatedPlot
+        from plots.path_cell_annotation_plot import PathCellAnnotatedPlot
         return PathCellAnnotatedPlot(board, **kwargs)
     elif plot_type == "text":
         from plots.text_plot import TextPlot
         return TextPlot(board, **kwargs)
+    elif plot_type == "low_contrast":
+        from plots.low_contrast_plot import LowContrastPlot
+        return LowContrastPlot(board, **kwargs)
+    elif plot_type == "low_contrast_and_path_cell_annotated":
+        from plots.low_contrast_plot import LowContrastPathCellAnnotatedPlot
+        return LowContrastPathCellAnnotatedPlot(board, **kwargs)
+    elif plot_type == "low_resolution":
+        from plots.low_resolution_plot import LowResolutionPlot
+        return LowResolutionPlot(board, **kwargs)
+    elif plot_type == "low_resolution_and_path_cell_annotated":
+        from plots.low_resolution_plot import LowResolutionPathCellAnnotatedPlot
+        return LowResolutionPathCellAnnotatedPlot(board, **kwargs)
+    elif plot_type == "rotated":
+        from plots.rotated_plot import RotatedPlot
+        return RotatedPlot(board, **kwargs)
+    elif plot_type == "rotated_and_path_cell_annotated":
+        from plots.rotated_plot import RotatedPathCellAnnotatedPlot
+        return RotatedPathCellAnnotatedPlot(board, **kwargs)
+    elif plot_type == "black_frame":
+        from plots.black_frame_plot import BlackFramePlot
+        return BlackFramePlot(board, **kwargs)
+    elif plot_type == "black_frame_and_path_cell_annotated":
+        from plots.black_frame_plot import BlackFramePathCellAnnotatedPlot
+        return BlackFramePathCellAnnotatedPlot(board, **kwargs)
     else:
         raise ValueError(f"Unknown plot type: {plot_type}")
 

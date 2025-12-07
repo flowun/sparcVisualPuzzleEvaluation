@@ -300,120 +300,6 @@ class OriginalPlot(Plot):
                                     outline_w = max(1, min(base_outline, inner_span // 3))
                                     self._draw.rectangle([x0, y0, x1, y1], outline=color, width=outline_w)
 
-class StartEndMarkedPlot(OriginalPlot):
-    def __init__(self,
-                 board,
-                 size=(-1, -1),
-                 start_color=(0, 0, 0),
-                 end_color=(0, 0, 0),
-                 pad_pixels=50,
-                 ):
-        super().__init__(board, size=size, pad_pixels=pad_pixels)
-        self.start_color = start_color
-        self.end_color = end_color
-
-    def render(self):
-        super().render()
-        # Highlight start and end positions
-        for y in range(self.board.height):
-            for x in range(self.board.width):
-                obj = self.board.get_object(x, y)
-                cx, cy = self.middle_positions[y][x]
-                if obj.type == "Start":
-                    self._draw.text((cx - self.cell_size // 6, cy - self.cell_size // 3.2), "S", fill=self.start_color, font_size=self.cell_size // 2)
-                elif obj.type == "End":
-                    self._draw.text((cx - self.cell_size // 6, cy - self.cell_size // 3.2), "E", fill=self.end_color, font_size=self.cell_size // 2)
-
-
-class CoordinateGridPlot(OriginalPlot):
-    def __init__(self,
-                 board,
-                 size=(-1, -1),
-                 coordinate_color=(255, 255, 255),
-                 coordinate_font_size=20,
-                 pad_pixels=50,
-                 extra_coordinate_info_pad_pixels=50,
-                 grid_lines=True
-                 ):
-        super().__init__(board, size=size, pad_pixels=pad_pixels+extra_coordinate_info_pad_pixels)
-        self.coordinate_color = coordinate_color
-        self.coordinate_font_size = coordinate_font_size
-        self.extra_coordinate_info_pad_pixels = extra_coordinate_info_pad_pixels
-        self.grid_lines = grid_lines
-
-    def initialize_image(self):
-        self.x_image_size -= self.extra_coordinate_info_pad_pixels
-        self.y_image_size -= self.extra_coordinate_info_pad_pixels
-        self._img = Image.new("RGB", (self.x_image_size, self.y_image_size), self.background_color)
-        self._draw = ImageDraw.Draw(self._img)
-
-    def render(self):
-        super().render()
-        # Draw coordinates on top and left side
-        for x in range(self.board.width):
-            cx, cy = self.middle_positions[0][x]
-            self._draw.text((cx - self.coordinate_font_size // 4, self.positions[0][0][1] * 1/3), str(x), fill=self.coordinate_color, font_size=self.coordinate_font_size)
-        for y in range(self.board.height):
-            cx, cy = self.middle_positions[y][0]
-            self._draw.text((self.positions[0][0][0] * 1/3, cy - self.coordinate_font_size // 2), str(y), fill=self.coordinate_color, font_size=self.coordinate_font_size)
-        # Draw grid lines if enabled
-        if self.grid_lines:
-            # Vertical lines (extend to full image height)
-            for x in range(self.board.width):
-                x_line = self.positions[0][x][0]
-                self._draw.line([x_line, 0, x_line, self.y_image_size - 1], fill=self.coordinate_color, width=1)
-            # Rightmost border line
-            right_edge_x = self.positions[0][-1][2]
-            self._draw.line([right_edge_x, 0, right_edge_x, self.y_image_size - 1], fill=self.coordinate_color, width=1)
-
-            # Horizontal lines (extend to full image width)
-            for y in range(self.board.height):
-                y_line = self.positions[y][0][1]
-                self._draw.line([0, y_line, self.x_image_size - 1, y_line], fill=self.coordinate_color, width=1)
-            # Bottom border line
-            bottom_edge_y = self.positions[-1][0][3]
-            self._draw.line([0, bottom_edge_y, self.x_image_size - 1, bottom_edge_y], fill=self.coordinate_color, width=1)
-
-            self._draw.line([0, 0, self.positions[0][0][0], self.positions[0][0][1]], fill=self.coordinate_color, width=1)
-
-            self._draw.text((self.positions[0][0][0] * 1/3, self.positions[0][0][1] * 2/3), "y", fill=self.coordinate_color, font_size=self.coordinate_font_size)
-            self._draw.text((self.positions[0][0][0] * 2/3, self.positions[0][0][1] * 1/3), "x", fill=self.coordinate_color, font_size=self.coordinate_font_size)
-
-
-class CoordinateGridAndStartEndMarkedPlot(CoordinateGridPlot, StartEndMarkedPlot):
-    def render(self):
-        super().render()
-
-
-class PathCellAnnotatedPlot(OriginalPlot):
-    def __init__(self,
-                 board,
-                 size=(-1, -1),
-                 pad_pixels=50,
-                 path_cell_size_ratio=(5, 10),
-                 ):
-        super().__init__(board, size=size, pad_pixels=pad_pixels, path_cell_size_ratio=path_cell_size_ratio)
-        self.font = ImageFont.truetype("arial.ttf", size=self.cell_size // 6)
-
-    def render(self):
-        super().render()
-        for y in range(self.board.height):
-            for x in range(self.board.width):
-                obj = self.board.get_object(x, y)
-                cx, cy = self.middle_positions[y][x]
-                if not(x % 2 == 1 and y % 2 == 1):
-                    if obj.type == 'Gap':
-                        text = f"Gap"
-                    elif obj.type == 'Start':
-                        text = f"Start\n({x},{y})"
-                    elif obj.type == 'End':
-                        text = f"End\n({x},{y})"
-                    elif obj.type == 'Dot':
-                        text = ""
-                    else:
-                        text = f"({x},{y})"
-                    self._draw.multiline_text((cx, cy), text, font=self.font, anchor="mm", align="center", spacing=2)
-
 
 if __name__ == "__main__":
     import os
@@ -440,7 +326,7 @@ if __name__ == "__main__":
         solutions=dataset[idx]['solutions']
     )
 
-    plot = PathCellAnnotatedPlot(
+    plot = OriginalPlot(
         board=b1,
         size=(b1.width, b1.height),
     )
