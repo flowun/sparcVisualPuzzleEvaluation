@@ -21,7 +21,7 @@ echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
 
 PORT="${LLM_PORT:-$((8000 + (SLURM_JOB_ID % 1000)))}"
 TP_SIZE="${SLURM_GPUS_ON_NODE}"
-GPU_UTIL="${LLM_GPU_UTIL:-0.95}"
+GPU_UTIL="${LLM_GPU_UTIL:-0.90}"
 HF_HOME="${HF_HOME:-$SCRATCH/huggingface}"
 VENV_VLLM="$HOME/.venv_llm"
 
