@@ -125,12 +125,32 @@ class Plot(ABC):
             except Exception:
                 raise ValueError(f"Unsupported path cell format: {cell!r}")
 
+        def signum(x):
+            return (x > 0) - (x < 0)
+
+        line_width = int(self.path_size) // 4
+
+        # circle at start
+        start_x, start_y = _to_xy(path[0])
+        start_cx, start_cy = self.middle_positions[start_y][start_x]
+        radius = max(1, line_width * 3 // 2)
+        self._draw.ellipse(
+            (start_cx - radius, start_cy - radius, start_cx + radius, start_cy + radius),
+            fill=path_color,
+            outline=path_color,
+            width=max(1, line_width // 2),
+        )
+
         for i in range(len(path) - 1):
             sx, sy = _to_xy(path[i])
             ex, ey = _to_xy(path[i + 1])
-            start_pos = self.middle_positions[sy][sx]
-            end_pos = self.middle_positions[ey][ex]
-            self._draw.line([start_pos, end_pos], fill=path_color, width=int(self.path_size) // 4)
+            start_pos = list(self.middle_positions[sy][sx])
+            end_pos = list(self.middle_positions[ey][ex])
+            start_pos[0] += int(signum(sx - ex) * (line_width / 2 - 1))
+            end_pos[0] += int(signum(ex - sx) * (line_width / 2 - 1))
+            start_pos[1] += int(signum(sy - ey) * (line_width / 2 - 1))
+            end_pos[1] += int(signum(ey - sy) * (line_width / 2 - 1))
+            self._draw.line([start_pos, end_pos], fill=path_color, width=line_width)
 
     def save(self, dir, filename):
         if self._img is None:
