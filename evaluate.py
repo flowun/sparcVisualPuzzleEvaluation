@@ -20,7 +20,9 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
     dataset_revision = "195579019ab44fce4f394bb03af04bf598956e4b"
     dataset = load_dataset("lkaesberg/SPaRC", subset, split=split, revision=dataset_revision)
     board_visualization_dir = f"data/boards/{board_type}/{split}/{subset}"
-    if not os.path.exists(board_visualization_dir):
+    if board_type == "no_board" and prompt_type == "no_board_default":  # sparc evaluation without images and without specifying prompts (as in initial SPaRC paper)
+        board_visualization_dir = None
+    if board_visualization_dir is not None and not os.path.exists(board_visualization_dir):
         print(f"Creating board images in {board_visualization_dir}...")
         create_board_images_in_parallel(dataset, split_savename=split, subset_savename=subset, plot_type=board_type)
 
@@ -85,7 +87,10 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
         # enqueue work
         with tqdm(total=len(dataset), desc="Evaluating") as pbar:
             for data in dataset:
-                image_path = os.path.join(board_visualization_dir, data['id'] + ".png")
+                if board_visualization_dir is not None:
+                    image_path = os.path.join(board_visualization_dir, data['id'] + ".png")
+                else:
+                    image_path = None
                 json_request = create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=max_tokens, top_p=top_p, top_k=top_k, seed=seed)
                 await request_queue.add_request_async(json_request, make_callback(data, pbar))
 

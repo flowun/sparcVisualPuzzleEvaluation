@@ -1,6 +1,7 @@
 main.py
 test.py
 evaluation/visualization/
+visualization/
 .idea/
 __pycache__/
 EVALUATION_GUIDE.md
