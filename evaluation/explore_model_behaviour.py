@@ -74,10 +74,10 @@ def cleanup_tmp_folder(tmp_folder):
                 print(f"Error deleting file {file_path}: {e}")
 
 class ModelBehaviourExplorerGUI:
-    def __init__(self, dataset, eval_results):
+    def __init__(self, dataset, eval_results, starting_id=None):
         self.dataset = dataset
         self.eval_results = eval_results
-        self.current_index = 0
+        self.current_index = 0 if starting_id is None else [i for i, d in enumerate(dataset) if d['id'] == starting_id][0]
         # store current PIL image to prevent GC of PhotoImage
         self._current_tk_img = None
         self._current_img_path = None  # track current image path for resize re-render
@@ -265,6 +265,6 @@ class ModelBehaviourExplorerGUI:
 if __name__ == "__main__":
     dataset = load_dataset("lkaesberg/SPaRC", subset, split=split, revision=dataset_revision)
     eval_results = load_evaluation_results(evaluation_file_path)
-    gui = ModelBehaviourExplorerGUI(dataset, eval_results)
+    gui = ModelBehaviourExplorerGUI(dataset, eval_results, starting_id="4fda11641a1a910d")
     gui.run()
     cleanup_tmp_folder(tmp_folder)
