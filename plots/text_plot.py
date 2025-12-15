@@ -187,6 +187,8 @@ class TextPlot(Plot):
                         text = f"Start\n({x},{y})"
                     elif t == 'End':
                         text = f"End\n({x},{y})"
+                    elif t == 'Dot':
+                        text = "Black\nDot"
                     else:
                         text = f"({x},{y})"
                     self._draw.multiline_text((cx, cy), text, fill=self.coordinate_color, font=self.font, anchor="mm", align="center", spacing=2)
