@@ -18,6 +18,7 @@ def create_bar_chart(
     transparent=False,
     text_on_bars=True,
     y_limit=None,
+    title_fontsize=14,
 ):
     categories = [category for category in data.keys()]
     values = [value * 100 for value in data.values()]
@@ -48,12 +49,12 @@ def create_bar_chart(
     ax.set_ylabel(y_label, fontsize=12)
     ax.tick_params(axis='both', which='major', labelsize=10)
 
-    ax.set_title(title, fontsize=14)
+    ax.set_title(title, fontsize=title_fontsize)
 
     if x_grid:
-        ax.xaxis.grid(True, linestyle='--', linewidth=0.6, color='0.75', alpha=0.8)
+        ax.xaxis.grid(True, linestyle='--', linewidth=0.5, color='0.75', alpha=0.6)
     if y_grid:
-        ax.yaxis.grid(True, linestyle='--', linewidth=0.6, color='0.75', alpha=0.8)
+        ax.yaxis.grid(True, linestyle='--', linewidth=0.5, color='0.75', alpha=0.6)
 
     if text_on_bars:
         for i, height in enumerate(values):

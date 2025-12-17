@@ -26,8 +26,9 @@ def create_radar_chart(
     dimension_fontsize=16,
     dimension_fontweight="bold",
     tick_fontsize=11,
-    title_fontsize=20,
+    title_fontsize=22,
     legend_fontsize=16,
+    show_single_legend=False,
 ):
 
     if dimensions is None:
@@ -105,7 +106,7 @@ def create_radar_chart(
     ax.set_title(title, fontsize=title_fontsize, pad=18)
 
     # --- legend at the bottom ---
-    if legend and len(labels) > 1:
+    if legend and (len(labels) > 1 or show_single_legend):
         handles, legend_labels = ax.get_legend_handles_labels()
         fig.legend(
             handles,

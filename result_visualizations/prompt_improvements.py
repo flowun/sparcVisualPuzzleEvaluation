@@ -23,7 +23,7 @@ for key, value in visualization_data.items():
 create_bar_chart(
     named_visualization_data,
     title="SPaRC Accuracy of\nQwen3-VL-235B-Thinking-FP8\nby Prompt Type",
-    x_label="Input Modality of the Board",
+    x_label="Prompt Type",
     y_label="Accuracy (%)",
     output_path=f"images/prompt_improvement.pdf",
     bar_color='skyblue',

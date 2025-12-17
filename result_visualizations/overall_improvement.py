@@ -3,10 +3,7 @@ from util import load_visualization_data
 from default_bar_chart import create_bar_chart
 
 bar_names = {
-    ("original", "prompt_engineering"): "Default",
-    ("coordinate_grid", "prompt_engineering"): "Coordinate\nGrid",
-    ("start_end_marked", "prompt_engineering"): "Start & End\nMarked",
-    ("coordinate_grid_and_start_end_marked", "prompt_engineering"): "Coord. Grid\n w. Start &\nEnd Marked",
+    ("no_board", "no_board_default"): "Text Only\n(no Board)",
     ("path_cell_annotated", "prompt_engineering"): "Path Cell\nAnnotated",
     ("text", "prompt_engineering"): "Text\non Board",
 }
@@ -25,10 +22,10 @@ for key, value in visualization_data.items():
 
 create_bar_chart(
     named_visualization_data,
-    title="SPaRC Accuracy of\nQwen3-VL-235B-Thinking-FP8\nby Board Type",
+    title="SPaRC Accuracy of\nQwen3-VL-235B-Thinking-FP8\nby Puzzle Representation",
     x_label="Board Type",
     y_label="Accuracy (%)",
-    output_path=f"images/board_improvements.pdf",
+    output_path=f"images/overall_comparison.pdf",
     bar_color='skyblue',
     # highlighted_bars=["Image &\nsome Text"],
     figsize=(int(len(bar_names) * 8 / 6), 4),

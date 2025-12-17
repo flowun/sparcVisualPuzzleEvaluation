@@ -7,12 +7,16 @@ from objects.board import get_board_from_data
 from plots.plot import get_plot_class
 
 model = "Qwen/Qwen3-VL-235B-A22B-Thinking-FP8"
+# model = "Qwen/Qwen3-VL-30B-A3B-Thinking"
 board_type = "original"
 prompt_type = "default_tr"
 subset = "all"
 split = "test"
+# evaluation_file = "original-B_default_no_tr-P_20251128_0233_stats_individual"
 # evaluation_file = "start_end_marked-B_prompt_engineering-P_20251128_1226_stats_individual"
-evaluation_file = "path_cell_annotated-B_prompt_engineering-P_20251130_0951_stats_individual"
+# evaluation_file = "path_cell_annotated-B_prompt_engineering-P_20251130_0951_stats_individual"
+evaluation_file = "text-B_prompt_engineering-P_20251216_1226_stats_individual"
+# evaluation_file = "original-B_default_tr-P_20251123_1151_stats_individual"
 evaluation_file_path = f"results/{split}/{subset}/{model.split('/')[-1]}/{evaluation_file}"
 dataset_revision = "195579019ab44fce4f394bb03af04bf598956e4b"
 tmp_folder = "../data/.tmp"
@@ -265,6 +269,6 @@ class ModelBehaviourExplorerGUI:
 if __name__ == "__main__":
     dataset = load_dataset("lkaesberg/SPaRC", subset, split=split, revision=dataset_revision)
     eval_results = load_evaluation_results(evaluation_file_path)
-    gui = ModelBehaviourExplorerGUI(dataset, eval_results, starting_id="4fda11641a1a910d")
+    gui = ModelBehaviourExplorerGUI(dataset, eval_results, starting_id="4fea7fa61194564d")
     gui.run()
     cleanup_tmp_folder(tmp_folder)

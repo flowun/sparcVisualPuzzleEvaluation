@@ -3,8 +3,9 @@ from util import load_path_analysis_data
 from default_radar_chart import create_radar_chart
 
 category_names = {
-    ("original", "default_no_tr"): "Image Only w. \nDefault Prompt",
-    ("original", "prompt_engineering"): "Image Only w.\nImproved Prompt",
+    # ("original", "default_no_tr"): "Default Prompt",
+    ("original", "prompt_engineering"): "Default Board",
+    ("coordinate_grid_and_start_end_marked", "prompt_engineering"): "Coord. Grid\n w. Start &\nEnd Marked",
 }
 
 selection_filter = category_names.keys()
@@ -23,11 +24,11 @@ for key, value in visualization_data.items():
     if dimensions is None:
         dimensions = list(value.keys())
 
+from matplotlib import pyplot as plt
 create_radar_chart(
     named_visualization_data,
     dimensions=dimensions,
-    title="Error Types before and after\nPrompt Improvement (lower is better)",
-    output_path="images/prompt_improvement_radar.pdf"
+    title="Error Types before and after\nBoard Improvement (lower is better)",
+    output_path="images/board_improvement_radar.pdf",
+    colors=[plt.cm.tab10.colors[2], plt.cm.tab10.colors[3]]
 )
-
-print(named_visualization_data)

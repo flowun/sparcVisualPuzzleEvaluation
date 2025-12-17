@@ -31,4 +31,5 @@ create_bar_chart(
     bar_color='skyblue',
     # highlighted_bars=["Image &\nsome Text"],
     figsize=(8, 4),
+    title_fontsize=12,
 )
