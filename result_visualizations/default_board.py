@@ -3,8 +3,8 @@ from util import load_visualization_data
 from default_bar_chart import create_bar_chart
 
 bar_names = {
-    ("no_board", "no_board_default"): "Text Only",
-    ("original", "default_tr"): "Image &\nsome Text",
+    ("no_board", "no_board_default"): "Text Only\n(Array)",
+    ("original", "default_tr"): "Image & Rule\nCoordinates",
     ("original", "default_no_tr"): "Image Only"
 }
 selection_filter = bar_names.keys()
@@ -29,5 +29,5 @@ create_bar_chart(
     output_path=f"images/input_modality_motivation.pdf",
     bar_color='skyblue',
     # highlighted_bars=["Image &\nsome Text"],
-    figsize=(4, 6),
+    figsize=(4, 6/10*9),
 )

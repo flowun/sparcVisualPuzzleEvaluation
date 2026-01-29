@@ -29,6 +29,7 @@ def create_radar_chart(
     title_fontsize=22,
     legend_fontsize=16,
     show_single_legend=False,
+    reverse_plotting=False,
 ):
 
     if dimensions is None:
@@ -39,15 +40,16 @@ def create_radar_chart(
     angles += angles[:1]
 
     labels = list(data.keys())
-    values_list = []
+    plot_labels = list(reversed(labels)) if reverse_plotting else labels
 
+    values_by_label = {}
     for label in labels:
         values = data[label]
         if isinstance(values, dict):
             values = [values.get(dim, 0) for dim in dimensions]
         if len(values) != num_dimensions:
             raise ValueError(f"Dataset '{label}' does not match {num_dimensions} dimensions")
-        values_list.append(values + values[:1])
+        values_by_label[label] = values + values[:1]
 
     fig, ax = plt.subplots(figsize=figsize, subplot_kw=dict(polar=True), dpi=300)
     if transparent:
@@ -83,8 +85,10 @@ def create_radar_chart(
 
     # --- series plotting: markers + translucent fills ---
     color_cycle = colors or colors or plt.cm.tab10.colors[1:]
-    for idx, (label, values) in enumerate(zip(labels, values_list)):
-        line_color = color_cycle[idx % len(color_cycle)]
+    color_map = {label: color_cycle[idx % len(color_cycle)] for idx, label in enumerate(labels)} if colors else {}
+    for idx, label in enumerate(plot_labels):
+        values = values_by_label[label]
+        line_color = color_map.get(label, color_cycle[idx % len(color_cycle)])
         marker = marker_styles[idx % len(marker_styles)]
 
         ax.plot(
@@ -108,12 +112,14 @@ def create_radar_chart(
     # --- legend at the bottom ---
     if legend and (len(labels) > 1 or show_single_legend):
         handles, legend_labels = ax.get_legend_handles_labels()
+        handle_by_label = dict(zip(legend_labels, handles))
+        ordered_handles = [handle_by_label[label] for label in labels if label in handle_by_label]
         fig.legend(
-            handles,
-            legend_labels,
+            ordered_handles,
+            labels,
             loc="lower center",
             bbox_to_anchor=(0.5, -0.02),
-            ncol=min(len(legend_labels), 4),
+            ncol=min(len(labels), 4),
             frameon=False,
             fontsize=legend_fontsize,
             handlelength=2.2,

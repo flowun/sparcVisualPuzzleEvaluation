@@ -5,6 +5,36 @@ name_replacement_dict = {
     "": "",
 }
 
+# Shared colors to keep board visualizations consistent.
+BOARD_TYPE_COLORS = {
+    "original": "#2CA02C",  # green
+    "coordinate_grid_and_start_end_marked": "#d62728",  # red
+    "path_cell_annotated": "#1f4b99",  # deep blue
+    # "text": "#ff69b4",  # pink
+    "text": "orange",
+    "coordinate_grid": "#9467bd",  # purple
+    "start_end_marked": "#8c564b",  # brown
+}
+BAR_LABEL_COLORS = {
+    "Default": BOARD_TYPE_COLORS["original"],
+    "Default\nBoard": BOARD_TYPE_COLORS["original"],
+    "Coord. Grid\n w. Start &\nEnd Marked": BOARD_TYPE_COLORS["coordinate_grid_and_start_end_marked"],
+    "Path Cell\nAnnotated": BOARD_TYPE_COLORS["path_cell_annotated"],
+    "Text\non Board": BOARD_TYPE_COLORS["text"],
+    "Coordinate\nGrid": BOARD_TYPE_COLORS["coordinate_grid"],
+    "Start & End\nMarked": BOARD_TYPE_COLORS["start_end_marked"],
+}
+
+
+def get_bar_color(label, fallback_cmap=None, index=0):
+    """Return a consistent color for a label with an optional colormap fallback."""
+    if label in BAR_LABEL_COLORS:
+        return BAR_LABEL_COLORS[label]
+    if fallback_cmap is not None:
+        return fallback_cmap(index % fallback_cmap.N)
+    return None
+
+
 def load_visualization_data(evaluation_dir, selection_filter=None):
     """
     Loads evaluation results from JSON files in the specified directory.

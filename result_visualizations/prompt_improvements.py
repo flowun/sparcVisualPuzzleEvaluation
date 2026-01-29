@@ -3,7 +3,7 @@ from util import load_visualization_data
 from default_bar_chart import create_bar_chart
 
 bar_names = {
-    ("original", "default_tr"): "Image &\nObject Coordinates",
+    ("original", "default_tr"): "Image & Rule\nCoordinates",
     ("original", "default_no_tr"): "Image Only",
     ("original", "prompt_engineering"): "Image Only w.\nImproved Prompt"
 }
@@ -28,5 +28,5 @@ create_bar_chart(
     output_path=f"images/prompt_improvement.pdf",
     bar_color='skyblue',
     # highlighted_bars=["Image &\nsome Text"],
-    figsize=(5, 6),
+    figsize=(5, 5),
 )
