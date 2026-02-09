@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH -G A100:4
-#SBATCH --time=04:30:00
+#SBATCH --time=14:00:00
 #SBATCH --mem=128G
 #SBATCH -c 32
 #SBATCH --output=logs/%x-%j.out
@@ -12,10 +12,11 @@
 
 set -euo pipefail
 echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
-MODEL="${MODEL:-Qwen/Qwen3-VL-2B-Instruct}"
+# MODEL="${MODEL:-Qwen/Qwen3-VL-2B-Instruct}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-8B-Thinking}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-32B-Thinking}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-32B-Instruct}"
+MODEL="${MODEL:-Qwen/Qwen3-VL-32B-Thinking}"
 # PORT="${LLM_PORT:-8000}"
 PORT="${LLM_PORT:-$((8000 + (SLURM_JOB_ID % 1000)))}"
 TP_SIZE="${SLURM_GPUS_ON_NODE}"
@@ -98,3 +99,4 @@ python evaluate.py \
   --top-k "$TOP_K" \
   --max-concurrent-requests "$MAX_CONCURRENT_REQUESTS" \
   --seed "$SEED"
+
