@@ -2,11 +2,18 @@ from util import load_visualization_data
 
 from default_bar_chart import create_bar_chart
 
+
 bar_names = {
     ("no_board", "no_board_default"): "Text Only\n(Array)",
     ("original", "default_tr"): "Image & Rule\nCoordinates",
     ("original", "default_no_tr"): "Image Only"
 }
+"""
+bar_names = {
+    ("no_board", "no_board_default"): "Text",
+    ("original", "default_no_tr"): "Image"
+}
+"""
 selection_filter = bar_names.keys()
 
 model = "Qwen3-VL-235B-A22B-Thinking-FP8"

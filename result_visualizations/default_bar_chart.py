@@ -10,6 +10,8 @@ def create_bar_chart(
     bar_color='blue',
     highlighted_bars=None,
     highlighted_bar_color='orange',
+    dim_non_highlighted=False,
+    non_highlighted_color='0.85',
     figsize=(10, 6),
     save_format='pdf',
     spines=False,
@@ -31,12 +33,18 @@ def create_bar_chart(
     bars = ax.bar(categories, values, color=bar_color, width=0.6)
 
     if highlighted_bars:
-        for i, category in enumerate(categories):
-            print("Checking category for highlighting:", category, i)
-            print(highlighted_bars)
-            if category in highlighted_bars:
-                print("Highlighting bar:", category, i)
-                bars[i].set_color(highlighted_bar_color)
+        highlighted_set = set(highlighted_bars)
+        if dim_non_highlighted:
+            for i, category in enumerate(categories):
+                if category not in highlighted_set:
+                    bars[i].set_color(non_highlighted_color)
+        else:
+            for i, category in enumerate(categories):
+                print("Checking category for highlighting:", category, i)
+                print(highlighted_bars)
+                if category in highlighted_set:
+                    print("Highlighting bar:", category, i)
+                    bars[i].set_color(highlighted_bar_color)
 
     ax.set_ylim(0, max(max(values) * 1.1, y_limit if y_limit else 0))
 

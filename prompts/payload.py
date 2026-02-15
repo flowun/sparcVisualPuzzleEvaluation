@@ -1,7 +1,7 @@
 import base64
 from sparc.prompt import generate_prompt
 
-from prompts.prompts import get_prompt
+from prompts.prompts import get_prompt, get_object_detection_prompt
 
 def encode_image_to_base64(image_path):
     with open(image_path, "rb") as f:
@@ -11,11 +11,14 @@ def decode_base64_to_image(b64_string, output_path):
     with open(output_path, "wb") as f:
         f.write(base64.b64decode(b64_string))
 
-def create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=10000, top_p=0.95, top_k=20, seed=42):
+def create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=10000, top_p=0.95, top_k=20, seed=42, object_detection_ablation=False):
     if image_path is None:  # default to standard sparc evaluation if no board image and prompt are provided
         return create_textual_payload(data, model, temperature, max_tokens, top_p, top_k, seed)
 
-    text_prompt = get_prompt(prompt_type, board_type, data)
+    if object_detection_ablation:
+        text_prompt = get_object_detection_prompt(prompt_type, board_type, data=data)
+    else:
+        text_prompt = get_prompt(prompt_type, board_type, data)
     b64_image = encode_image_to_base64(image_path)
     payload = {
         "model": model,

@@ -1,11 +1,17 @@
 from util import load_path_analysis_data
 
 from default_radar_chart import create_radar_chart
-
+"""
 category_names = {
     ("original", "default_no_tr"): "Image Only w. \nDefault Prompt",
     ("original", "prompt_engineering"): "Image Only w.\nImproved Prompt",
 }
+"""
+category_names = {
+    ("original", "default_no_tr"): "Default Prompt",
+    ("original", "prompt_engineering"): "Improved Prompt",
+}
+
 
 selection_filter = category_names.keys()
 

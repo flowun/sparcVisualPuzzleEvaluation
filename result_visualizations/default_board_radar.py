@@ -5,7 +5,7 @@ from default_radar_chart import create_radar_chart
 category_names = {
     # ("no_board", "no_board_default"): "Text Only",
     # ("original", "default_tr"): "Image &\nsome Text",
-    ("original", "default_no_tr"): "Image Only"
+    ("original", "default_no_tr"): "Image Input"  # Image Only
 }
 
 selection_filter = category_names.keys()

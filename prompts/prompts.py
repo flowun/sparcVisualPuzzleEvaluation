@@ -23,6 +23,14 @@ def get_prompt(prompt_type, board_type, data=None):
         raise ValueError(f"Unknown prompt type: {prompt_type}")
 
 
+def get_object_detection_prompt(prompt_type, board_type, data=None):
+    # Prompt for object detection ablation
+    if prompt_type == "default":
+        from .default_object_detection import get_prompt as default_od_get_prompt
+        return default_od_get_prompt(data, board_type)
+    else:
+        raise ValueError(f"Unknown prompt type for object detection: {prompt_type}")
+
 if __name__ == "__main__":
     # Example usage
     from datasets import load_dataset

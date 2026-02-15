@@ -47,9 +47,3 @@ The drawn path must satisfy **ALL** applicable constraints:
 ####
 [(0, 0), (1, 0), (2, 0), (2, 1), ...]
 """
-
-# ask lars regarding polyshapes: can they be rotated? in the prompt it says yes, in the game it wasn't in my memory
-# removed: Rotation of polyshapes is generally allowed unless context implies otherwise.
-# {data.get("text_visualization", "")}
-
-# one shot example: ... is ... (objects). Since ... cells can only be located at coordinates where ..., ...

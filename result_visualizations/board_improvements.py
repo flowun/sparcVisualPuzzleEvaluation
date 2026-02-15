@@ -4,6 +4,7 @@ from default_bar_chart import create_bar_chart
 
 bar_names = {
     ("original", "prompt_engineering"): "Default",
+    # ("no_board", "no_board_default"): "Textual\nRepresentation",
     ("coordinate_grid", "prompt_engineering"): "Coordinate\nGrid",
     ("start_end_marked", "prompt_engineering"): "Start & End\nMarked",
     ("coordinate_grid_and_start_end_marked", "prompt_engineering"): "Coord. Grid\n w. Start &\nEnd Marked",

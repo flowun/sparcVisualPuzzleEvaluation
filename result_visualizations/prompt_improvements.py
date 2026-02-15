@@ -1,12 +1,19 @@
 from util import load_visualization_data
 
 from default_bar_chart import create_bar_chart
-
+"""
 bar_names = {
     ("original", "default_tr"): "Image & Rule\nCoordinates",
     ("original", "default_no_tr"): "Image Only",
     ("original", "prompt_engineering"): "Image Only w.\nImproved Prompt"
 }
+"""
+
+bar_names = {
+    ("original", "default_no_tr"): "Default (Vision)",
+    ("original", "prompt_engineering"): "Improved (Vision)"
+}
+
 selection_filter = bar_names.keys()
 
 model = "Qwen3-VL-235B-A22B-Thinking-FP8"
@@ -29,4 +36,5 @@ create_bar_chart(
     bar_color='skyblue',
     # highlighted_bars=["Image &\nsome Text"],
     figsize=(5, 5),
+    # figsize=(4, 6),
 )

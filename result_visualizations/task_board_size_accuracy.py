@@ -121,11 +121,12 @@ def create_board_size_line_chart(
 
     handles, labels = ax.get_legend_handles_labels()
     if handles:
-        legend_cols = min(len(labels), 2) if len(labels) > 1 else 1
+        # legend_cols = min(len(labels), 2) if len(labels) > 1 else 1
+        legend_cols = 1
         ax.legend(
             handles,
             labels,
-            fontsize=9,
+            fontsize=10,
             loc="upper right",
             bbox_to_anchor=(0.98, 0.98),
             ncol=legend_cols,

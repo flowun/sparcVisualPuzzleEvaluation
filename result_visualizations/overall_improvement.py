@@ -3,9 +3,12 @@ from util import load_visualization_data
 from default_bar_chart import create_bar_chart
 
 bar_names = {
-    ("no_board", "no_board_default"): "Text Only\n(no Board)",
+    ("original", "prompt_engineering"): "Default",
+    ("no_board", "no_board_default"): "Text Only\n(no Image)",
+    ("coordinate_grid_and_start_end_marked", "prompt_engineering"): "Coord. Grid\n w. Start &\nEnd Marked",
     ("path_cell_annotated", "prompt_engineering"): "Path Cell\nAnnotated",
     ("text", "prompt_engineering"): "Text\non Board",
+    ("rotated_and_path_cell_annotated", "prompt_engineering"): "Rotated\nPath Cell\nAnnotatation",
 }
 selection_filter = bar_names.keys()
 
@@ -27,7 +30,8 @@ create_bar_chart(
     y_label="Accuracy (%)",
     output_path=f"images/overall_comparison.pdf",
     bar_color='skyblue',
-    # highlighted_bars=["Image &\nsome Text"],
+    highlighted_bars=["Default", "Coord. Grid\n w. Start &\nEnd Marked", "Path Cell\nAnnotated", "Text\non Board"],
+    dim_non_highlighted=True,
     figsize=(int(len(bar_names) * 8 / 6), 4),
     y_limit=30,
     title_fontsize=12
