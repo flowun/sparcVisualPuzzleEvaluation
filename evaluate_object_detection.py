@@ -7,8 +7,9 @@ from datasets import load_dataset
 from datetime import datetime
 import re
 import ast
+import warnings
 
-from parallel_image_creation import create_board_images_in_parallel
+from parallel_image_creation import create_board_images_in_parallel, create_board_image
 from prompts.payload import create_payload_with_image
 from evaluation.request_queue import RequestQueueAsync
 import argparse
@@ -19,6 +20,13 @@ def extract_model_solution(model_output):
     Extract a 2D array representation (list of lists of strings) from model output.
     Tries to be resilient to code fences, extra text, and spacing/newlines.
     """
+    def _warn_and_empty(reason):
+        warnings.warn(f"Could not parse model solution: {reason}", UserWarning)
+        return [[]]
+
+    if model_output is None:
+        return _warn_and_empty("model_output is None")
+
     solution_marker = "####"
     solution_part = model_output.split(solution_marker)[-1] if solution_marker in model_output else model_output
 
@@ -26,11 +34,14 @@ def extract_model_solution(model_output):
     solution_part = re.sub(r"```[\w-]*", " ", solution_part)
     solution_part = solution_part.replace("```", " ")
 
+    # Strip '\n', '\' and ' '
+    solution_part = solution_part.replace("\\n", "").replace("\\", "").replace(" ", "")
+
     # Keep only the first complete bracketed expression
     start = solution_part.find("[")
     end = solution_part.rfind("]")
     if start == -1 or end == -1 or end <= start:
-        return []
+        return _warn_and_empty("no bracketed array found")
     bracketed = solution_part[start : end + 1]
 
     # Normalize whitespace
@@ -61,6 +72,9 @@ def extract_model_solution(model_output):
         if tokens:
             rows.append(tokens)
 
+    if not rows:
+        return _warn_and_empty("parsed rows were empty")
+
     return rows
 
 def is_same_poly(provided_cell, correct_cell, poly_definitions):
@@ -73,8 +87,10 @@ def is_same_poly(provided_cell, correct_cell, poly_definitions):
     """
     provided_parts = provided_cell.split("-")
     correct_parts = correct_cell.split("-")
-    if len(provided_parts) < 3 or not (provided_cell.startswith("P-") or provided_cell.startswith("Y-")):
+    if not (provided_cell.startswith("P-") or provided_cell.startswith("Y-")):
         raise ValueError(f"Invalid polyshape format: {provided_cell}")
+    if len(provided_parts) < 3:
+        return False  # not enough parts to define a full polyshape
     if len(provided_parts) > 25:
         return False  # too big shape, cannot be correct
     if not provided_parts[0] == correct_parts[0]:
@@ -139,22 +155,24 @@ def analyze_solution(model_solution, data):
 
     n_valid, n_total = 0, 0
     per_type_counts = {}  # {type: {"total": int, "correct": int}}
-
     for i in range(len(data["puzzle_array"])):
         for j in range(len(data["puzzle_array"][0])):
             correct_cell = data["puzzle_array"][i][j]
             provided_cell = model_solution[i][j] if i < len(model_solution) and j < len(model_solution[i]) else None
-
             cell_type = correct_cell[0] if correct_cell else None
             if cell_type in ["A", "B", "C", "D"]:
                 cell_type = "T"
             if cell_type is not None:
                 per_type_counts.setdefault(cell_type, {"total": 0, "correct": 0})
                 per_type_counts[cell_type]["total"] += 1
+            n_total += 1
+
+            if provided_cell is None:
+                continue
 
             is_correct = False
             if correct_cell.startswith(("P-", "Y-")):
-                if provided_cell and is_same_poly(provided_cell, correct_cell, data["polyshapes"]):
+                if provided_cell.startswith(("P-", "Y-")) and is_same_poly(provided_cell, correct_cell, json.loads(data["polyshapes"])):
                     is_correct = True
             else:
                 if provided_cell == correct_cell:
@@ -164,7 +182,6 @@ def analyze_solution(model_solution, data):
                 n_valid += 1
                 if cell_type is not None:
                     per_type_counts[cell_type]["correct"] += 1
-            n_total += 1
 
     valid_fraction = n_valid / n_total if n_total > 0 else 0
 
@@ -200,20 +217,22 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
 
     def make_callback(data, pbar):
         async def on_response(response, payload):
+            # print("Response is:", response)
             if 'error' in response:
                 print(f"Error in response for ID {data['id']}: {response['error']}")
                 pbar.update(1)
                 return
 
             def _analyze():
-                print("\n\nResponse received for ID:", data['id'], "tokens:", response["usage"]["completion_tokens"])
+                # print("\n\nResponse received for ID:", data['id'], "tokens:", response["usage"]["completion_tokens"])
                 model_output = response['choices'][0]['message']['content']
-                while '####' in model_output and not any(str(n) in model_output.rsplit("####", 1)[-1] for n in range(1, 10)) and not "(" in model_output.rsplit("####", 1)[-1]:
+                while '####' in model_output and not all(c in model_output.rsplit("####", 1)[-1] for c in ['[', ']', ',']):
                     # all except everything from last #### (split only once at last occurence)
                     model_output = model_output.rsplit("####", 1)[0]
                 model_solution = extract_model_solution(model_output)
+                print(response['choices'][0]['message']['content'], "\n\nmodel solution:", model_solution)
                 fully_valid, valid_fraction, per_type_stats = analyze_solution(model_solution, data)
-                print("------------------------------------------------\n", response['choices'][0]['message']['content'], "\n\nmodel solution:", model_solution, "\nfully_valid:", fully_valid, "\nvalid_fraction:", valid_fraction, "\n------------------------------------------------")
+                print("\nfully_valid:", fully_valid, "\nvalid_fraction:", valid_fraction, "\n------------------------------------------------")
                 return fully_valid, valid_fraction, per_type_stats, model_solution
             try:
                 fully_valid, valid_fraction, per_type_stats, model_solution = await asyncio.to_thread(_analyze)
@@ -249,6 +268,9 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
             for data in dataset:
                 if board_visualization_dir is not None:
                     image_path = os.path.join(board_visualization_dir, data['id'] + ".png")
+                    if not os.path.exists(image_path):
+                        # Generate missing image on demand to avoid FileNotFoundError.
+                        create_board_image(data, split_savename=split, subset_savename=subset, plot_type=board_type)
                 else:
                     image_path = None
                 json_request = create_payload_with_image(prompt_type, board_type, image_path, data, model, temperature, max_tokens=max_tokens, top_p=top_p, top_k=top_k, seed=seed, object_detection_ablation=True)
@@ -266,6 +288,12 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
     print(f"Processing and saving results...")
     eval_results = {r['id']: r for r in eval_results}
     try:
+        difficulty_levels = []
+        for i in range(1, 6):
+            for r in eval_results.values():
+                if r['difficulty_level'] == i:
+                    difficulty_levels.append(i)
+                    break
         stats = {
             "dataset": "lkaesberg/SPaRC",
             "dataset_revision": dataset_revision,
@@ -280,7 +308,7 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
             "accuracy_by_type": {t: (sum(r["analysis"].get(t, {}).get("correct", 0) for r in eval_results.values()) / sum(r["analysis"].get(t, {}).get("total", 0) for r in eval_results.values())) if sum(r["analysis"].get(t, {}).get("total", 0) for r in eval_results.values()) > 0 else 0.0 for t in {k for r in eval_results.values() for k in r["analysis"]}},
             "avg_accuracy_by_difficulty_level": (lambda vals: {
                 level: sum(1 for r in vals if r['difficulty_level'] == level and r['is_valid']) / max(1, sum(1 for r in vals if r['difficulty_level'] == level))
-                for level in range(1, 6)
+                for level in difficulty_levels
             })(list(eval_results.values())),
             "avg_difficulty_score": sum(r['difficulty_score'] for r in eval_results.values()) / len(dataset),
             "avg_difficulty_level": sum(r['difficulty_level'] for r in eval_results.values()) / len(dataset),
@@ -303,7 +331,7 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
                     "completion_tokens": sum(r['token_usage']['completion_tokens'] for r in vals if r['difficulty_level'] == level) / sum(1 for r in vals if r['difficulty_level'] == level),
                     "total_tokens": sum(r['token_usage']['total_tokens'] for r in vals if r['difficulty_level'] == level) / sum(1 for r in vals if r['difficulty_level'] == level),
                 }
-                for level in range(1, 6)
+                for level in difficulty_levels
             })(list(eval_results.values())),
             "temperature": temperature,
             "max_tokens": max_tokens,
@@ -341,11 +369,11 @@ if __name__ == "__main__":
         "Qwen/Qwen3-VL-235B-A22B-Thinking-FP8": "c6c469b4fb011e422f962f98b457743dbd6e7052"
     }
 
-    parser = argparse.ArgumentParser(description="Evaluate SPaRC puzzles with a vision-language model.")
-    parser.add_argument("--model", default="Qwen/Qwen3-VL-235B-A22B-Instruct-FP8", help="Full model name.")
+    parser = argparse.ArgumentParser(description="Evaluate SPaRC object detection with a vision-language model.")
+    parser.add_argument("--model", default="Qwen/Qwen3-VL-235B-A22B-Thinking-FP8", help="Full model name.")
     parser.add_argument("--model-sha", default=None, help="Override model SHA, otherwise resolved via mapping or 'latest'.")
     parser.add_argument("--board-type", default="original", help="Board visualization type.")
-    parser.add_argument("--prompt-type", default="default_tr", help="Prompt template type.")
+    parser.add_argument("--prompt-type", default="default", help="Prompt template type.")
     parser.add_argument("--subset", default="all", help="Dataset subset.")
     parser.add_argument("--split", default="test", help="Dataset split.")
     parser.add_argument("--api-port", type=int, default=8000, help="Local API port.")

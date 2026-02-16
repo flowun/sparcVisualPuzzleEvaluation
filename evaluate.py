@@ -106,6 +106,12 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
     print(f"Processing and saving results...")
     eval_results = {r['id']: r for r in eval_results}
     try:
+        difficulty_levels = []
+        for i in range(1, 6):
+            for r in eval_results.values():
+                if r['difficulty_level'] == i:
+                    difficulty_levels.append(i)
+                    break
         stats = {
             "dataset": "lkaesberg/SPaRC",
             "dataset_revision": dataset_revision,
@@ -118,7 +124,7 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
             "accuracy": sum(1 for r in eval_results.values() if r['is_valid']) / len(dataset),
             "avg_accuracy_by_difficulty_level": (lambda vals: {
                 level: sum(1 for r in vals if r['difficulty_level'] == level and r['is_valid']) / max(1, sum(1 for r in vals if r['difficulty_level'] == level))
-                for level in range(1, 6)
+                for level in difficulty_levels
             })(list(eval_results.values())),
             "avg_path_analysis_metrics": (lambda vals: {
                 k: sum(1 for r in vals if (r["path_analysis"][k])) / len(dataset)
@@ -152,7 +158,7 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
                     "completion_tokens": sum(r['token_usage']['completion_tokens'] for r in vals if r['difficulty_level'] == level) / sum(1 for r in vals if r['difficulty_level'] == level),
                     "total_tokens": sum(r['token_usage']['total_tokens'] for r in vals if r['difficulty_level'] == level) / sum(1 for r in vals if r['difficulty_level'] == level),
                 }
-                for level in range(1, 6)
+                for level in difficulty_levels
             })(list(eval_results.values())),
             "temperature": temperature,
             "max_tokens": max_tokens,

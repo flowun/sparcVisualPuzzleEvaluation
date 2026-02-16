@@ -1,4 +1,6 @@
+import json
 import unittest
+import warnings
 
 from evaluate_object_detection import extract_model_solution, is_same_poly, analyze_solution
 
@@ -14,11 +16,29 @@ class ExtractModelSolutionTests(unittest.TestCase):
 
     def returns_empty_list_when_no_brackets(self):
         output = "no array here"
-        self.assertEqual(extract_model_solution(output), [])
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            self.assertEqual(extract_model_solution(output), [[]])
+            self.assertTrue(any("Could not parse model solution" in str(w.message) for w in caught))
 
     def handles_extra_text_and_whitespace(self):
         output = "text before [ [ 'x' , 'y' ] , [ 'z' , 'w' ] ] trailing"
         self.assertEqual(extract_model_solution(output), [["x", "y"], ["z", "w"]])
+
+    def parses_escaped_newlines_and_quotes(self):
+        output = "####\\n[\\n  [\\'-G\\', \\'+\\'],\\n  [\\'S\\', \\'+\\']\\n]"
+        self.assertEqual(extract_model_solution(output), [["-G", "+"], ["S", "+"]])
+
+    def extract_large_solution(self):
+        output = "#### [['S', '+', '+', '+', '+'], ['+', 'o-R', '+', 'N', '+'], ['+', '+', '.', '.', '+'], ['+', 'N', '+', 'N', '+'], ['+', '+', '+', '+', '+'], ['+', 'N', '+', 'N', '+'], ['+', '+', '+', '+', '+'], ['+', 'N', '+', 'N', '+'], ['+', '+', '+', '+', '+'], ['+', 'o-K', '+', 'o-P', '+'], ['+', '+', '+', '+', 'E']] "
+        self.assertEqual(extract_model_solution(output), [['S', '+', '+', '+', '+'], ['+', 'o-R', '+', 'N', '+'], ['+', '+', '.', '.', '+'], ['+', 'N', '+', 'N', '+'], ['+', '+', '+', '+', '+'], ['+', 'N', '+', 'N', '+'], ['+', '+', '+', '+', '+'], ['+', 'N', '+', 'N', '+'], ['+', '+', '+', '+', '+'], ['+', 'o-K', '+', 'o-P', '+'], ['+', '+', '+', '+', 'E']])
+
+    def warns_and_returns_empty_for_malformed_output(self):
+        output = "#### not an array"
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            self.assertEqual(extract_model_solution(output), [[]])
+            self.assertTrue(any("Could not parse model solution" in str(w.message) for w in caught))
 
 
 class IsSamePolyTests(unittest.TestCase):
@@ -60,10 +80,10 @@ class AnalyzeSolutionTests(unittest.TestCase):
                 ["P-B-1", "G", "Y-R-2"],
                 ["G", "P-B-1", "B"],
             ],
-            "polyshapes": {
+            "polyshapes": json.dumps({
                 "1": [[1]],
                 "2": [[0, 1], [0, 0]],
-            },
+            }),
         }
         model_solution = [
             ["P-B-10-00", "G", "Y-R-01-00"],
@@ -85,7 +105,7 @@ class AnalyzeSolutionTests(unittest.TestCase):
                 ["A", "B"],
                 ["P-B-1", "A"],
             ],
-            "polyshapes": {"1": [[1]]},
+            "polyshapes": json.dumps({"1": [[1]]}),
         }
         model_solution = [["A", "B"]]
 
@@ -96,6 +116,22 @@ class AnalyzeSolutionTests(unittest.TestCase):
         self.assertEqual(per_type_stats["T"], {"total": 3, "correct": 2, "fraction": 2 / 3})
         self.assertEqual(per_type_stats["P"], {"total": 1, "correct": 0, "fraction": 0.0})
 
+    def counts_missing_model_columns_as_incorrect_by_type(self):
+        data = {
+            "puzzle_array": [
+                ["A", "B"],
+                ["P-B-1", "A"],
+            ],
+            "polyshapes": json.dumps({"1": [[1]]}),
+        }
+        model_solution = [["A"], ["P-B-1"]]
+
+        is_fully_valid, valid_fraction, per_type_stats = analyze_solution(model_solution, data)
+
+        self.assertEqual(is_fully_valid, 0)
+        self.assertAlmostEqual(valid_fraction, 0.5)
+        self.assertEqual(per_type_stats["T"], {"total": 3, "correct": 1, "fraction": 1 / 3})
+        self.assertEqual(per_type_stats["P"], {"total": 1, "correct": 1, "fraction": 1.0})
 
 def load_tests(loader, tests, pattern):
     suite = unittest.TestSuite()
@@ -104,6 +140,9 @@ def load_tests(loader, tests, pattern):
         "extracts_after_solution_marker",
         "returns_empty_list_when_no_brackets",
         "handles_extra_text_and_whitespace",
+        "parses_escaped_newlines_and_quotes",
+        "extract_large_solution",
+        "warns_and_returns_empty_for_malformed_output",
     ]:
         suite.addTest(ExtractModelSolutionTests(name))
     for name in [
@@ -119,7 +158,7 @@ def load_tests(loader, tests, pattern):
     for name in [
         "computes_fraction_and_type_stats_with_mixed_cells",
         "counts_missing_model_rows_as_incorrect_by_type",
+        "counts_missing_model_columns_as_incorrect_by_type",
     ]:
         suite.addTest(AnalyzeSolutionTests(name))
     return suite
-
