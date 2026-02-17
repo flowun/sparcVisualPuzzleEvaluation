@@ -250,8 +250,6 @@ def evaluate(model, model_sha="latest", split="test", subset="all", board_type="
                     "difficulty_score": data['difficulty_score'],
                     "polyshapes": data['polyshapes'],
                     "puzzle_array": data['puzzle_array'],
-                    "solution_count": data['solution_count'],
-                    "solutions": data['solutions'],
                     "token_usage": response["usage"],
                 })
             except Exception as e:
