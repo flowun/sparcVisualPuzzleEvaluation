@@ -12,6 +12,7 @@
 
 set -euo pipefail
 echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
+EVAL_SCRIPT="${EVAL_SCRIPT:-evaluate.py}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-2B-Instruct}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-8B-Thinking}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-32B-Thinking}"
@@ -85,7 +86,7 @@ source activate sparcVisualPuzzleEval
 # Run evaluation with explicit CLI arguments
 echo "Starting Python Script"
 
-python evaluate.py \
+python "$EVAL_SCRIPT" \
   --model "$MODEL" \
   --model-sha "${MODEL_SHA:-}" \
   --board-type "$BOARD_TYPE" \

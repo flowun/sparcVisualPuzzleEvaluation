@@ -25,6 +25,7 @@ GPU_UTIL="${LLM_GPU_UTIL:-0.90}"
 HF_HOME="${HF_HOME:-$SCRATCH/huggingface}"
 VENV_VLLM="$HOME/.venv_llm"
 
+EVAL_SCRIPT="${EVAL_SCRIPT:-evaluate.py}"
 # MODEL="${MODEL:-Qwen/Qwen3-VL-235B-A22B-Instruct-FP8}"
 MODEL="${MODEL:-Qwen/Qwen3-VL-235B-A22B-Thinking-FP8}"
 BOARD_TYPE="${BOARD_TYPE:-original}"
@@ -90,7 +91,7 @@ echo "[$(date +%F\ %T)] vLLM server running on port $PORT. Logs: $LOG_FILE"
 source activate sparcVisualPuzzleEval
 # Run evaluation with explicit CLI arguments
 echo "Starting Python Script"
-python evaluate.py \
+python "$EVAL_SCRIPT" \
   --model "$MODEL" \
   --model-sha "${MODEL_SHA:-}" \
   --board-type "$BOARD_TYPE" \

@@ -13,6 +13,7 @@
 set -euo pipefail
 echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
 
+EVAL_SCRIPT="${EVAL_SCRIPT:-evaluate.py}"
 MODEL="${MODEL:-Qwen/Qwen3-VL-30B-A3B-Thinking}" # this model works in vllm=0.11.2 only with polyfill: https://github.com/vllm-project/vllm/issues/18967
 # MODEL="${MODEL:-zai-org/GLM-4.1V-9B-Thinking}"
 # PORT="${LLM_PORT:-8000}"
@@ -80,7 +81,7 @@ echo "[$(date +%F\ %T)] vLLM server running on port $PORT. Logs: $LOG_FILE"
 source activate sparcVisualPuzzleEval
 # Run evaluation with explicit CLI arguments
 echo "Starting Python Script"
-python evaluate.py \
+python "$EVAL_SCRIPT" \
   --model "$MODEL" \
   --model-sha "${MODEL_SHA:-}" \
   --board-type "$BOARD_TYPE" \
