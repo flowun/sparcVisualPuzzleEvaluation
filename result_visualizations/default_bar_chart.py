@@ -20,6 +20,7 @@ def create_bar_chart(
     transparent=False,
     text_on_bars=True,
     y_limit=None,
+    y_min=None,
     title_fontsize=14,
 ):
     categories = [category for category in data.keys()]
@@ -46,7 +47,7 @@ def create_bar_chart(
                     print("Highlighting bar:", category, i)
                     bars[i].set_color(highlighted_bar_color)
 
-    ax.set_ylim(0, max(max(values) * 1.1, y_limit if y_limit else 0))
+    ax.set_ylim(0 if y_min is None else y_min, max(max(values) * 1.1, y_limit if y_limit else 0))
 
     if not spines:
         ax.spines['top'].set_visible(False)

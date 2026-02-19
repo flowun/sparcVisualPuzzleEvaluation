@@ -35,7 +35,7 @@ def get_bar_color(label, fallback_cmap=None, index=0):
     return None
 
 
-def load_visualization_data(evaluation_dir, selection_filter=None):
+def load_visualization_data(evaluation_dir, selection_filter=None, stat='accuracy'):
     """
     Loads evaluation results from JSON files in the specified directory.
     Args:
@@ -60,7 +60,7 @@ def load_visualization_data(evaluation_dir, selection_filter=None):
                 continue
             board_type = name_replacement_dict.get(board_type, board_type)
             prompt_type = name_replacement_dict.get(prompt_type, prompt_type)
-            accuracy = overall_stats['accuracy']
+            accuracy = overall_stats[stat]
             if (board_type, prompt_type) not in visualization_data:
                 visualization_data[(board_type, prompt_type)] = [accuracy]
             else:  # in case there are multiple evaluation results of the same configuration, the average is taken

@@ -25,6 +25,7 @@ def create_radar_chart(
     marker_styles=("o", "s", "P", "^", "D", "X"),  # circle, square, plus, triangle...
     dimension_fontsize=16,
     dimension_fontweight="bold",
+    dimension_label_pad=4,
     tick_fontsize=11,
     title_fontsize=22,
     legend_fontsize=16,
@@ -63,6 +64,7 @@ def create_radar_chart(
     # --- category labels (big + bold) ---
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(dimensions, fontsize=dimension_fontsize, fontweight=dimension_fontweight)
+    ax.tick_params(axis="x", pad=dimension_label_pad)
 
     # --- radial scale + percent tick labels (25/50/75/100%) ---
     ax.set_ylim(0, rmax)
