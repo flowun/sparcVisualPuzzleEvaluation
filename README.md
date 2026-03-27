@@ -38,7 +38,7 @@ Entry points and folders:
 pip install -r requirements.txt
 ```
 
-2. Start an OpenAI-compatible local model API (default expected endpoint: `http://127.0.0.1:8000/v1/chat/completions`).
+2. Start an OpenAI-compatible model API (default expected endpoint: `http://127.0.0.1:8000/v1/chat/completions`).
 
 3. Run the main evaluation by specifying your model, the puzzle representation (`board_type`), and the prompt variant (`prompt_type`) similar to the following example:
 
