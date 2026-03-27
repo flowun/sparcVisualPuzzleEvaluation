@@ -139,11 +139,11 @@ def create_confusion_matrix(
     y_axis_labels = [abbreviation_to_label(label) for label in true_labels]
     ax.set_xticks(np.arange(len(pred_labels)))
     ax.set_yticks(np.arange(len(true_labels)))
-    ax.set_xticklabels(x_axis_labels, fontsize=8, fontweight="bold", rotation=45, ha="right")
-    ax.set_yticklabels(y_axis_labels, fontsize=8, fontweight="bold")
+    ax.set_xticklabels(x_axis_labels, fontsize=7, fontweight="bold", rotation=45, ha="right")
+    ax.set_yticklabels(y_axis_labels, fontsize=7, fontweight="bold")
 
-    ax.set_xlabel("Detected Object", fontsize=10, fontweight="bold")
-    ax.set_ylabel("True Object", fontsize=10, fontweight="bold")
+    ax.set_xlabel("Detected Object Type", fontsize=10, fontweight="bold")
+    ax.set_ylabel("True Object Type", fontsize=10, fontweight="bold")
 
     # Draw subtle cell boundaries for readability.
     ax.set_xticks(np.arange(-0.5, len(pred_labels), 1), minor=True)
@@ -172,8 +172,8 @@ def create_confusion_matrix(
     colorbar_label = "Frequency"
     colorbar.set_label(colorbar_label, fontsize=10, fontweight="bold")
 
-    representation_single_line = representation_name.replace("\n", " ")
-    fig.suptitle(f"SPaRC Object Detection of {representation_single_line} Board", fontsize=13, fontweight="bold", y=0.995)
+    # representation_single_line = representation_name.replace("\n", " ")
+    fig.suptitle(f"SPaRC Object Detection of {representation_name} Board", fontsize=13, fontweight="bold", y=0.995)
     fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.97))
 
     if output_path:
@@ -191,20 +191,53 @@ def create_confusion_matrix(
 
 
 if __name__ == "__main__":
-    selected_representation = ("original", "default")
-    selected_representation_name = "Default"
-    # selected_representation = ("coordinate_grid_and_start_end_marked", "default")
-    # selected_representation_name = "Coord. Grid w. Start & End Marked"
-    # selected_representation = ("path_cell_annotated", "default")
-    # selected_representation_name = "Path Cell Annotated"
-    # selected_representation = ("text", "default")
-    # selected_representation_name = "Text on Board"
-    # selected_representation = ("coordinate_grid", "default")
-    # selected_representation_name = "Coordinate\nGrid"
-    # selected_representation = ("start_end_marked", "default")
-    # selected_representation_name = "Start & End Marked"
-    # selected_representation = ("rotated", "default")
-    # selected_representation_name = "Rotated"
+    selected_preset_key = "default"
+    presets = {
+        "default": {
+            "representation": ("original", "default"),
+            "name": "Default",
+            "file_name": "od_confusion_matrix_default_board.pdf",
+        },
+        "coordinate_grid_and_start_end_marked": {
+            "representation": ("coordinate_grid_and_start_end_marked", "default"),
+            "name": "\nCoord. Grid w. Start & End Marked",
+            "file_name": "od_confusion_matrix_coordinate_grid_and_start_end_marked.pdf",
+        },
+        "path_cell_annotated": {
+            "representation": ("path_cell_annotated", "default"),
+            "name": "Path Cell Annotated",
+            "file_name": "od_confusion_matrix_path_cell_annotated_board.pdf",
+        },
+        "text": {
+            "representation": ("text", "default"),
+            "name": "Text on Board",
+            "file_name": "od_confusion_matrix_text_board.pdf",
+        },
+        "coordinate_grid": {
+            "representation": ("coordinate_grid", "default"),
+            "name": "Coordinate Grid",
+            "file_name": "od_confusion_matrix_coordinate_grid.pdf",
+        },
+        "start_end_marked": {
+            "representation": ("start_end_marked", "default"),
+            "name": "Start & End Marked",
+            "file_name": "od_confusion_matrix_start_end_marked.pdf",
+        },
+        "rotated": {
+            "representation": ("rotated", "default"),
+            "name": "Rotated",
+            "file_name": "od_confusion_matrix_rotated_board.pdf",
+        },
+    }
+    try:
+        selected_preset = presets[selected_preset_key]
+    except KeyError as exc:
+        available_presets = ", ".join(sorted(presets))
+        raise KeyError(f"Unknown preset '{selected_preset_key}'. Available presets: {available_presets}") from exc
+
+    selected_representation = selected_preset["representation"]
+    selected_representation_name = selected_preset["name"]
+    selected_file_name = selected_preset["file_name"]
     selection_filter = [selected_representation]
 
     model = "Qwen3-VL-235B-A22B-Thinking-FP8"
@@ -228,7 +261,7 @@ if __name__ == "__main__":
         true_labels,
         pred_labels,
         representation_name=selected_representation_name,
-        output_path=str(Path(__file__).resolve().parent / "images" / "od_confusion_matrix.pdf"),
+        output_path=str(Path(__file__).resolve().parent / "images" / selected_file_name),
         normalize_rows=True,
     )
 

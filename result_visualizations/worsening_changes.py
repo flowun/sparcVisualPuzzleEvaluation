@@ -6,7 +6,7 @@ bar_names = {
     ("path_cell_annotated", "prompt_engineering"): "Path Cell\nAnnotated",
     ("low_contrast_and_path_cell_annotated", "prompt_engineering"): "& Low Contrast",
     ("low_resolution_and_path_cell_annotated", "prompt_engineering"): "& Low Resolution",
-    ("black_frame_and_path_cell_annotated", "prompt_engineering"): "& Black Frame",
+    # ("black_frame_and_path_cell_annotated", "prompt_engineering"): "& Black Frame",
     ("rotated_and_path_cell_annotated", "prompt_engineering"): "& Rotated",
 }
 selection_filter = bar_names.keys()
@@ -30,6 +30,6 @@ create_bar_chart(
     output_path=f"images/worsening_changes.pdf",
     bar_color='skyblue',
     # highlighted_bars=["Image &\nsome Text"],
-    figsize=(8, 4),
+    figsize=(8 - 2/3, 4 - 1/3),
     title_fontsize=12,
 )

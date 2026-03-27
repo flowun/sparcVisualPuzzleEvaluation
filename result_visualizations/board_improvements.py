@@ -34,5 +34,5 @@ create_bar_chart(
     # highlighted_bars=["Image &\nsome Text"],
     figsize=(int(len(bar_names) * 8 / 6), 4),
     y_limit=30,
-    title_fontsize=12
+    title_fontsize=12,
 )
