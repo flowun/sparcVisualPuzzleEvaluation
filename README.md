@@ -7,6 +7,11 @@ This repository contains the evaluation code for the seminar *Selected Topics in
 - [Prompts](#prompts)
 - [Puzzle Representations](#puzzle-representations)
 - [Results](#results)
+  - [SPaRC Accuracy by Puzzle Representation](#sparc-accuracy-by-puzzle-representation)
+  - [What problems does the default board representation have?](#what-problems-does-the-default-board-representation-have)
+  - [How well can the best improved puzzle representation detect object types?](#how-well-can-the-best-improved-puzzle-representation-detect-object-types)
+  - [Are object specifics (color, number of triangles, shape of polyshapes) detected correctly?](#are-object-specifics-color-number-of-triangles-shape-of-polyshapes-detected-correctly)
+  - [What worsens visual representations?](#what-worsens-visual-representations)
 - [Acknowledgements](#acknowledgements)
 
 ## Overview
@@ -168,7 +173,7 @@ The following results all refer to evaluations with the model [Qwen3-VL-235B-A22
 
 ### SPaRC Accuracy by Puzzle Representation
 
-<img src="docs/images/board_improvements.png" alt="" width="600">
+<img src="docs/images/board_improvements.png" alt="" width="800">
 
 → Improving the visual puzzle representation alone increases the SPaRC accuracy **from 1.8%** (`original`board) **to 25.5%** (`path_cell_annotated`board) **and 29.0%** (`text`on board) → visual representations matter!
 
@@ -202,7 +207,7 @@ The visual SPaRC benchmark does not only require detecting the correct object ty
 
 ### What worsens visual representations?
 
-<img src="docs/images/worsening_changes.png" alt="" width="600">
+<img src="docs/images/worsening_changes.png" alt="" width="700">
 
 → Just rotating the board by 15° decreases the accuracy from 25.5% to 18% → When giving an LLM a grid representation, make sure to align the x and y axes of the grid with the x and y axes of the image
 
