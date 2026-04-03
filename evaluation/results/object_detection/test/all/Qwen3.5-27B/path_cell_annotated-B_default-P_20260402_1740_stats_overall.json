@@ -1,0 +1,80 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "path_cell_annotated",
+  "prompt_type": "default",
+  "model": "Qwen/Qwen3.5-27B",
+  "model_sha": "latest",
+  "accuracy": 0.478,
+  "fraction_average": 0.8198431138294742,
+  "accuracy_by_type": {
+    "*": 0.830379746835443,
+    "+": 0.8595063615519489,
+    ".": 0.8276923076923077,
+    "G": 0.7991071428571429,
+    "T": 0.8346666666666667,
+    "Y": 0.6896551724137931,
+    "N": 0.742914979757085,
+    "E": 0.838,
+    "S": 0.838,
+    "o": 0.7185273159144893,
+    "P": 0.7253968253968254
+  },
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.3372093023255814,
+    "2": 0.4745762711864407,
+    "3": 0.5785123966942148,
+    "4": 0.4883720930232558,
+    "5": 0.47191011235955055
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "total_requests": 500,
+  "timestamp": "20260402_1740",
+  "evaluation_duration_seconds": 16978.601813316345,
+  "token_usage": {
+    "prompt_tokens": 854377,
+    "completion_tokens": 11895811,
+    "total_tokens": 12750188
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1708.754,
+    "completion_tokens": 23791.622,
+    "total_tokens": 25500.376
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1555.3255813953488,
+      "completion_tokens": 30860.372093023256,
+      "total_tokens": 32415.697674418603
+    },
+    "2": {
+      "prompt_tokens": 1644.415254237288,
+      "completion_tokens": 23641.77966101695,
+      "total_tokens": 25286.194915254237
+    },
+    "3": {
+      "prompt_tokens": 1670.9173553719008,
+      "completion_tokens": 23202.462809917357,
+      "total_tokens": 24873.380165289258
+    },
+    "4": {
+      "prompt_tokens": 1780.5697674418604,
+      "completion_tokens": 19746.45348837209,
+      "total_tokens": 21527.023255813954
+    },
+    "5": {
+      "prompt_tokens": 1924.3595505617977,
+      "completion_tokens": 21869.61797752809,
+      "total_tokens": 23793.977528089887
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200,
+  "seed": 42
+}

@@ -1,0 +1,74 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "path_cell_annotated",
+  "prompt_type": "prompt_engineering",
+  "model": "google/gemma-3-27b-it",
+  "model_sha": "latest",
+  "accuracy": 0.0,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.9,
+    "connected_line": 0.67,
+    "non_intersecting_line": 0.662,
+    "no_rule_crossing": 0.036,
+    "fully_valid_path": 0.028
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "avg_path_length": 65.39,
+  "total_requests": 500,
+  "timestamp": "20260401_1312",
+  "evaluation_duration_seconds": 2096.196481704712,
+  "token_usage": {
+    "prompt_tokens": 960990,
+    "completion_tokens": 670372,
+    "total_tokens": 1631362
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1921.98,
+    "completion_tokens": 1340.744,
+    "total_tokens": 3262.724
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1921.1627906976744,
+      "completion_tokens": 2843.186046511628,
+      "total_tokens": 4764.3488372093025
+    },
+    "2": {
+      "prompt_tokens": 1921.7627118644068,
+      "completion_tokens": 989.7203389830509,
+      "total_tokens": 2911.4830508474574
+    },
+    "3": {
+      "prompt_tokens": 1921.8429752066115,
+      "completion_tokens": 941.1570247933885,
+      "total_tokens": 2863.0
+    },
+    "4": {
+      "prompt_tokens": 1922.2558139534883,
+      "completion_tokens": 1018.4302325581396,
+      "total_tokens": 2940.686046511628
+    },
+    "5": {
+      "prompt_tokens": 1922.9775280898875,
+      "completion_tokens": 1209.056179775281,
+      "total_tokens": 3132.0337078651687
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200,
+  "seed": 42
+}

@@ -1,0 +1,80 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "coordinate_grid_and_start_end_marked",
+  "prompt_type": "default",
+  "model": "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "model_sha": "latest",
+  "accuracy": 0.0,
+  "fraction_average": 0.6197971718098259,
+  "accuracy_by_type": {
+    "o": 0.2838479809976247,
+    "N": 0.343262001156738,
+    ".": 0.24923076923076923,
+    "Y": 0.0,
+    "P": 0.02857142857142857,
+    "*": 0.21772151898734177,
+    "E": 0.428,
+    "T": 0.264,
+    "S": 0.432,
+    "G": 0.14136904761904762,
+    "+": 0.7421211167558333
+  },
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "total_requests": 500,
+  "timestamp": "20260402_1848",
+  "evaluation_duration_seconds": 1100.575520992279,
+  "token_usage": {
+    "prompt_tokens": 950315,
+    "completion_tokens": 422189,
+    "total_tokens": 1372504
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1900.63,
+    "completion_tokens": 844.378,
+    "total_tokens": 2745.008
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1702.3139534883721,
+      "completion_tokens": 532.3604651162791,
+      "total_tokens": 2234.6744186046512
+    },
+    "2": {
+      "prompt_tokens": 1820.2542372881355,
+      "completion_tokens": 1330.4237288135594,
+      "total_tokens": 3150.677966101695
+    },
+    "3": {
+      "prompt_tokens": 1853.4876033057851,
+      "completion_tokens": 675.5123966942149,
+      "total_tokens": 2529.0
+    },
+    "4": {
+      "prompt_tokens": 1995.5,
+      "completion_tokens": 733.9418604651163,
+      "total_tokens": 2729.4418604651164
+    },
+    "5": {
+      "prompt_tokens": 2171.247191011236,
+      "completion_tokens": 837.7528089887641,
+      "total_tokens": 3009.0
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200,
+  "seed": 42
+}

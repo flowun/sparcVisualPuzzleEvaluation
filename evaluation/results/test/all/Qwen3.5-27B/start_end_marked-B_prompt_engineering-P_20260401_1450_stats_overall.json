@@ -1,0 +1,74 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "start_end_marked",
+  "prompt_type": "prompt_engineering",
+  "model": "Qwen/Qwen3.5-27B",
+  "model_sha": "latest",
+  "accuracy": 0.23,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.46511627906976744,
+    "2": 0.3559322033898305,
+    "3": 0.21487603305785125,
+    "4": 0.05813953488372093,
+    "5": 0.02247191011235955
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.562,
+    "connected_line": 0.624,
+    "non_intersecting_line": 0.844,
+    "no_rule_crossing": 0.816,
+    "fully_valid_path": 0.418
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "avg_path_length": 866.86,
+  "total_requests": 500,
+  "timestamp": "20260401_1450",
+  "evaluation_duration_seconds": 29524.460168361664,
+  "token_usage": {
+    "prompt_tokens": 1029302,
+    "completion_tokens": 18829714,
+    "total_tokens": 19859016
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 2058.604,
+    "completion_tokens": 37659.428,
+    "total_tokens": 39718.032
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1921.0813953488373,
+      "completion_tokens": 34169.232558139534,
+      "total_tokens": 36090.313953488374
+    },
+    "2": {
+      "prompt_tokens": 2000.2796610169491,
+      "completion_tokens": 34795.601694915254,
+      "total_tokens": 36795.8813559322
+    },
+    "3": {
+      "prompt_tokens": 2024.5289256198348,
+      "completion_tokens": 35117.603305785124,
+      "total_tokens": 37142.13223140496
+    },
+    "4": {
+      "prompt_tokens": 2124.453488372093,
+      "completion_tokens": 41367.67441860465,
+      "total_tokens": 43492.12790697674
+    },
+    "5": {
+      "prompt_tokens": 2251.516853932584,
+      "completion_tokens": 44701.449438202246,
+      "total_tokens": 46952.96629213483
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200,
+  "seed": 42
+}

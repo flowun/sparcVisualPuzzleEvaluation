@@ -1,0 +1,74 @@
+{
+  "dataset": "lkaesberg/SPaRC",
+  "dataset_revision": "195579019ab44fce4f394bb03af04bf598956e4b",
+  "dataset_subset": "all",
+  "dataset_split": "test",
+  "board_type": "coordinate_grid_and_start_end_marked",
+  "prompt_type": "prompt_engineering",
+  "model": "google/gemma-3-27b-it",
+  "model_sha": "latest",
+  "accuracy": 0.0,
+  "avg_accuracy_by_difficulty_level": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+  },
+  "avg_path_analysis_metrics": {
+    "starts_at_start_ends_at_exit": 0.548,
+    "connected_line": 0.668,
+    "non_intersecting_line": 0.724,
+    "no_rule_crossing": 0.048,
+    "fully_valid_path": 0.018
+  },
+  "avg_difficulty_score": 2.4337982196123917,
+  "avg_difficulty_level": 2.948,
+  "avg_path_length": 19.982,
+  "total_requests": 500,
+  "timestamp": "20260401_1237",
+  "evaluation_duration_seconds": 464.84860467910767,
+  "token_usage": {
+    "prompt_tokens": 968490,
+    "completion_tokens": 438438,
+    "total_tokens": 1406928
+  },
+  "avg_tokens_per_task": {
+    "prompt_tokens": 1936.98,
+    "completion_tokens": 876.876,
+    "total_tokens": 2813.856
+  },
+  "avg_tokens_per_task_by_difficulty_level": {
+    "1": {
+      "prompt_tokens": 1936.1627906976744,
+      "completion_tokens": 749.9767441860465,
+      "total_tokens": 2686.139534883721
+    },
+    "2": {
+      "prompt_tokens": 1936.7627118644068,
+      "completion_tokens": 840.0254237288135,
+      "total_tokens": 2776.7881355932204
+    },
+    "3": {
+      "prompt_tokens": 1936.8429752066115,
+      "completion_tokens": 862.4545454545455,
+      "total_tokens": 2799.2975206611573
+    },
+    "4": {
+      "prompt_tokens": 1937.2558139534883,
+      "completion_tokens": 942.5813953488372,
+      "total_tokens": 2879.8372093023254
+    },
+    "5": {
+      "prompt_tokens": 1937.9775280898875,
+      "completion_tokens": 1004.4719101123595,
+      "total_tokens": 2942.449438202247
+    }
+  },
+  "temperature": 0.6,
+  "max_tokens": 81920,
+  "top_p": 0.95,
+  "top_k": 20,
+  "max_concurrent_requests": 200,
+  "seed": 42
+}
