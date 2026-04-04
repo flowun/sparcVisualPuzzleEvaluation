@@ -57,8 +57,7 @@ apptainer exec --cleanenv --env "HF_HOME=$HF_HOME" -B $HF_HOME:$HF_HOME:rw --nv 
   --port "$PORT" \
   --tensor-parallel-size "$TP_SIZE" \
   --gpu-memory-utilization "$GPU_UTIL" \
-  --trust-remote-code \
-  --max-model-len 100000 &
+  --trust-remote-code &
 
 SERVER_PID=$!
 
