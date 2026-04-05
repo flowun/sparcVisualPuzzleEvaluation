@@ -8,7 +8,7 @@
 #SBATCH --mem=128G
 #SBATCH -c 32
 #SBATCH --output=logs/%x-%j.out
-#SBATCH -C inet
+#SBATCH -C inet&80gb
 
 set -euo pipefail
 echo "[$(date +%F\ %T)] Job starting on $HOSTNAME"
@@ -20,10 +20,10 @@ EVAL_SCRIPT="${EVAL_SCRIPT:-evaluate_object_detection.py}"
 # MODEL="${MODEL:-zai-org/GLM-4.6V}"
 # MODEL="${MODEL:-Qwen/Qwen3.5-27B}"
 # MODEL="${MODEL:-mistralai/Mistral-Small-3.2-24B-Instruct-2506}"
-MODEL="${MODEL:-meta-llama/Llama-4-Scout-17B-16E-Instruct}"
+# MODEL="${MODEL:-meta-llama/Llama-4-Scout-17B-16E-Instruct}"
 # MODEL="${MODEL:-google/gemma-3-27b-it}"
 # MODEL="${MODEL:-google/gemma-4-31B-it}"
-# MODEL="${MODEL:-QuantTrio/Qwen3.5-397B-A17B-AWQ}"
+MODEL="${MODEL:-QuantTrio/Qwen3.5-397B-A17B-AWQ}"
 # PORT="${LLM_PORT:-8000}"
 PORT="${LLM_PORT:-$((8000 + (SLURM_JOB_ID % 1000)))}"
 TP_SIZE="${SLURM_GPUS_ON_NODE}"
@@ -88,7 +88,7 @@ source .venv/bin/activate
 echo "Starting Python Script"
 
 # Loop over the board types we want to evaluate
-BOARD_TYPES=("original" "coordinate_grid" "start_end_marked" "coordinate_grid_and_start_end_marked" "path_cell_annotated" "text")
+BOARD_TYPES=("low_contrast" "low_contrast_and_path_cell_annotated" "low_resolution" "low_resolution_and_path_cell_annotated" "rotated" "rotated_and_path_cell_annotated")
 
 for BT in "${BOARD_TYPES[@]}"; do
   echo "Evaluating board type: $BT"
