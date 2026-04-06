@@ -1,0 +1,24 @@
+Metric,Value,Percentage
+Total Puzzles Processed,498,100.0%
+Correctly Solved,169,33.9%
+Failed,329,66.1%
+,,
+Fully Valid Paths,459,92.2%
+Connected Paths,489,98.2%
+Correct Start/End,498,100.0%
+Non-Intersecting,498,100.0%
+No Rule Violations,468,94.0%
+,,
+Avg Path Length,20.6 steps,
+Min Path Length,2 steps,
+Max Path Length,66 steps,
+,,
+Difficulty 1 Solved,67/86,77.9%
+Difficulty 2 Solved,57/118,48.3%
+Difficulty 3 Solved,36/121,29.8%
+Difficulty 4 Solved,6/85,7.1%
+Difficulty 5 Solved,3/88,3.4%
+,,
+Total Time,1038714.6 seconds,
+Avg Time per Puzzle,2085.77 seconds,
+Puzzles per Minute,0.0,
