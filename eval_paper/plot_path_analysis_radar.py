@@ -15,7 +15,7 @@ from pathlib import Path
 from matplotlib.lines import Line2D
 from plot_config import (
     setup_plot_style,
-    TEXT_WIDTH_INCHES,
+    COLUMN_WIDTH_INCHES,
 )
 
 # ── Shared constants ──────────────────────────────────────────────────────
@@ -162,7 +162,7 @@ def create_radar_chart(sparc_dir, test_dir, output_path=None):
     angles += angles[:1]
 
     fig, ax = plt.subplots(
-        figsize=(TEXT_WIDTH_INCHES * 0.55, TEXT_WIDTH_INCHES * 0.55),
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES),
         subplot_kw={"projection": "polar"},
     )
 

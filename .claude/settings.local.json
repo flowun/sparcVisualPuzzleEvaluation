@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I {} basename {})",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3:*)",
+      "Bash(grep -h '\"model\"' /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/evaluation/results/test/all/*/original-B_prompt_engineering-P*stats_overall.json)",
+      "Bash(ls /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/evaluation/results/sparc/*_vlm_stats.csv)"
+    ]
+  }
+}
