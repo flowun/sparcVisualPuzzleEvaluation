@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
-Grouped bar chart showing the impact of worsening strategies
-(low contrast, low resolution, rotated) on Qwen 3.5 397B and Gemma 4 31B,
-including their path-cell-annotated recovery variants.
+Grouped bar chart showing object-detection accuracy (fraction_average)
+under worsening conditions and their annotation-recovery variants.
+
+Demonstrates that cell annotations recover object detection accuracy
+under degraded visual conditions. Uses Gemma 4 31B and Qwen 3.5 397B.
 
 Includes group labels and recovery delta annotations.
 """
@@ -13,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
 from pathlib import Path
 from plot_config import (
-    setup_plot_style, TEXT_WIDTH_INCHES, get_model_color, DEFAULT_PROMPT,
+    setup_plot_style, TEXT_WIDTH_INCHES, get_model_color,
     read_json_metric,
 )
 
@@ -54,23 +56,23 @@ GROUP_LABELS = {
 RECOVERY_PAIRS = [(2, 3), (4, 5), (6, 7)]
 
 
-def collect_data(test_dir):
+def collect_data(od_dir):
     result = {}
     for folder, _ in MODELS:
-        model_dir = test_dir / "all" / folder
+        model_dir = od_dir / "all" / folder
         vals = []
         for bt in BOARD_ORDER:
-            val = read_json_metric(model_dir, bt, "accuracy",
-                                   prompt_type=DEFAULT_PROMPT)
+            val = read_json_metric(model_dir, bt, "fraction_average",
+                                   prompt_type="default")
             vals.append(val)
         result[folder] = vals
     return result
 
 
-def create_worsening_chart(test_dir, output_path=None):
+def create_od_worsening_chart(od_dir, output_path=None):
     setup_plot_style(use_latex=True)
 
-    data = collect_data(test_dir)
+    data = collect_data(od_dir)
 
     n_boards = len(BOARD_ORDER)
     n_models = len(MODELS)
@@ -98,13 +100,15 @@ def create_worsening_chart(test_dir, output_path=None):
             if np.isnan(v):
                 continue
             all_vals_flat.append(v)
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + 0.5,
-                    f"{v:.1f}",
-                    ha="center", va="bottom",
-                    fontsize=5.5, fontweight="bold")
+            txt = ax.text(bar.get_x() + bar.get_width() / 2,
+                          bar.get_height() + 0.3,
+                          f"{v:.1f}",
+                          ha="center", va="bottom",
+                          fontsize=5.5, fontweight="bold",
+                          color=color)
+            txt.set_path_effects([pe.withStroke(linewidth=2, foreground="white")])
 
-    y_max = max(all_vals_flat) * 1.22 if all_vals_flat else 50
+    y_max = max(all_vals_flat) * 1.18 if all_vals_flat else 100
 
     for sep_x in [1.5, 3.5, 5.5]:
         ax.axvline(sep_x, color="gray", linewidth=0.6, linestyle="--", alpha=0.4)
@@ -125,7 +129,7 @@ def create_worsening_chart(test_dir, output_path=None):
             mid_x = (worsened_idx + recovered_idx) / 2 + (mi - (n_models - 1) / 2) * bar_width
             color = get_model_color(display_name)
             sign = "+" if delta >= 0 else ""
-            txt = ax.text(mid_x, max(w_val, r_val) + y_max * 0.06,
+            txt = ax.text(mid_x, max(w_val, r_val) + y_max * 0.04,
                           f"{sign}{delta:.1f}",
                           ha="center", va="bottom", fontsize=5,
                           color=color, fontweight="bold")
@@ -133,18 +137,19 @@ def create_worsening_chart(test_dir, output_path=None):
 
     ax.set_xticks(x)
     ax.set_xticklabels([BOARD_LABELS[bt] for bt in BOARD_ORDER], fontsize=6.5)
-    ax.set_ylabel("Accuracy (\\%)")
+    ax.set_ylabel("Avg. Rule Detection Acc. (\\%)")
     ax.set_ylim(0, y_max)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.grid(axis="y", linewidth=0.3, alpha=0.5)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.3)
+    ax.set_axisbelow(True)
 
     ax.legend(
         fontsize=7,
         loc="upper right",
         frameon=True,
-        edgecolor="0.85",
+        framealpha=0.95,
         fancybox=False,
     )
 
@@ -157,12 +162,12 @@ def create_worsening_chart(test_dir, output_path=None):
 
 def main():
     base = Path(__file__).parent.parent / "evaluation" / "results"
-    test_dir = base / "test"
+    od_dir = base / "object_detection" / "test"
 
     output_dir = base / "figures"
     output_dir.mkdir(exist_ok=True)
 
-    create_worsening_chart(test_dir, output_dir / "worsening_comparison.pdf")
+    create_od_worsening_chart(od_dir, output_dir / "od_worsening_comparison.pdf")
 
 
 if __name__ == "__main__":

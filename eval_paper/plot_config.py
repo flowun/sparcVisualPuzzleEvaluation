@@ -116,8 +116,12 @@ MODEL_COLORS = {
     "Qwen3-14B":      "#8B5CF6",
     "Qwen 3 32B":     "#6D28D9",
     "Qwen3-32B":      "#6D28D9",
-    "Qwen 3 VL 32B":  "#C026D3",  # VL variant – distinct hue shift
+    "Qwen 3 VL 8B":   "#DDA0DD",
+    "Qwen3-VL-8B":    "#DDA0DD",
+    "Qwen 3 VL 32B":  "#C026D3",
     "Qwen3-VL-32B":   "#C026D3",
+    "Qwen 3 VL 235B": "#9B59B6",
+    "Qwen3-VL-235B":  "#9B59B6",
 
     # --- Qwen 3.5 ---  (slightly warmer purple to distinguish from 3.x)
     "Qwen 3.5 27B":   "#7C3AED",
@@ -304,6 +308,8 @@ def get_model_imagebox(model_name, zoom_factor=1.0, rotation=0):
         "GPT": "openai.png",
         "OLMo": "olmo.png",
         "Magistral": "mistral.png",
+        "Mistral": "mistral.png",
+        "GLM": "gemini.png",
     }
 
     logo_path = None
@@ -396,11 +402,137 @@ def perform_chi_square_test(contingency_table, test_name, group1_name, group2_na
     return {"chi2_stat": chi2_stat, "p_value": p_value, "dof": dof, "cramers_v": cramers_v, "significant": significant}
 
 
-# Additional color palettes can be added here in the future
-# For example:
-# PLAYER_COLORS = [...]
-# TECHNIQUE_COLORS = {...}
-# etc.
+# ---------------------------------------------------------------------------
+# Shared model registry for the 7 primary evaluation models.
+# Maps sparc CSV stem → (test / object_detection folder name, display name).
+# ---------------------------------------------------------------------------
+MODEL_REGISTRY = {
+    "google_gemma-3-27b-it":                          ("gemma-3-27b-it",                       "Gemma 3 27B"),
+    "google_gemma-4-31B-it":                          ("gemma-4-31B-it",                       "Gemma 4 31B"),
+    "Qwen_Qwen3.5-27B":                              ("Qwen3.5-27B",                          "Qwen 3.5 27B"),
+    "QuantTrio_Qwen3.5-397B-A17B-AWQ":               ("Qwen3.5-397B-A17B-AWQ",                "Qwen 3.5 397B"),
+    "meta-llama_Llama-4-Scout-17B-16E-Instruct":     ("Llama-4-Scout-17B-16E-Instruct",       "Llama 4 Scout"),
+    "mistralai_Mistral-Small-3.2-24B-Instruct-2506": ("Mistral-Small-3.2-24B-Instruct-2506",  "Mistral Small 3.2"),
+    "zai-org_GLM-4.6V":                              ("GLM-4.6V",                              "GLM 4.6V"),
+}
+
+BOARD_TYPES = [
+    "text",
+    "path_cell_annotated",
+    "coordinate_grid_and_start_end_marked",
+    "start_end_marked",
+    "coordinate_grid",
+    "original",
+]
+
+BOARD_LABELS = {
+    "original":                              "Original",
+    "text":                                  "Text Symbols",
+    "coordinate_grid":                       "Axis Labels",
+    "start_end_marked":                      "S/E Markers",
+    "coordinate_grid_and_start_end_marked":  "Axis Labels + S/E",
+    "path_cell_annotated":                   "Cell Coordinates",
+}
+
+BOARD_LABELS_MULTILINE = {
+    "original":                              "Original",
+    "text":                                  "Text\nSymbols",
+    "coordinate_grid":                       "Axis\nLabels",
+    "start_end_marked":                      "S/E\nMarkers",
+    "coordinate_grid_and_start_end_marked":  "Axis Labels\n+ S/E",
+    "path_cell_annotated":                   "Cell\nCoordinates",
+}
+
+BOARD_LABELS_SHORT = {
+    "original":                              "Orig.",
+    "coordinate_grid":                       "Axis",
+    "start_end_marked":                      "S/E",
+    "coordinate_grid_and_start_end_marked":  "Axis+S/E",
+    "path_cell_annotated":                   "Cell Coord.",
+    "text":                                  "Text Sym.",
+}
+
+BOARD_COLORS = {
+    "original":                              "#E53935",
+    "coordinate_grid":                       "#1E88E5",
+    "start_end_marked":                      "#43A047",
+    "coordinate_grid_and_start_end_marked":  "#FB8C00",
+    "path_cell_annotated":                   "#8E24AA",
+    "text":                                  "#00897B",
+}
+
+BOARD_MARKERS = {
+    "original":                              "o",
+    "coordinate_grid":                       "s",
+    "start_end_marked":                      "D",
+    "coordinate_grid_and_start_end_marked":  "^",
+    "path_cell_annotated":                   "v",
+    "text":                                  "P",
+}
+
+DEFAULT_PROMPT = "prompt_engineering"
+
+
+def get_sparc_accuracy(stats_file):
+    """Return overall accuracy (%) from a sparc *_vlm_stats.csv file."""
+    import pandas as pd
+    df = pd.read_csv(stats_file)
+    for _, row in df.iterrows():
+        if row["Metric"] == "Correctly Solved":
+            return float(str(row["Percentage"]).replace("%", ""))
+    return 0.0
+
+
+def read_json_metric(model_dir, board_type, key, scale=100.0,
+                     prompt_type=DEFAULT_PROMPT):
+    """Read a numeric field from the latest *_stats_overall.json for a board type."""
+    pattern = f"{board_type}-B_{prompt_type}-P_*_stats_overall.json"
+    matches = sorted(model_dir.glob(pattern))
+    if not matches:
+        return np.nan
+    with open(matches[-1]) as f:
+        data = json.load(f)
+    if "error" in data or key not in data:
+        return np.nan
+    return data[key] * scale
+
+
+def read_json_data(model_dir, board_type, prompt_type=DEFAULT_PROMPT):
+    """Read the full JSON dict from the latest *_stats_overall.json."""
+    pattern = f"{board_type}-B_{prompt_type}-P_*_stats_overall.json"
+    matches = sorted(model_dir.glob(pattern))
+    if not matches:
+        return None
+    with open(matches[-1]) as f:
+        data = json.load(f)
+    if "error" in data:
+        return None
+    return data
+
+
+def add_model_logos(fig, ax, data_labels, zoom_factor=0.8):
+    """Add model logos next to y-axis tick labels."""
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    from matplotlib.offsetbox import AnnotationBbox
+    for i, name in enumerate(data_labels):
+        imagebox = get_model_imagebox(name, zoom_factor=zoom_factor)
+        if imagebox is None:
+            continue
+        tick_label = ax.get_yticklabels()[i]
+        bbox = tick_label.get_window_extent(renderer)
+        xd = bbox.x0 - 4
+        yd = bbox.y0 + 0.5 * bbox.height
+        fx, fy = figure_fraction_anchor_from_display_xy(fig, (xd, yd))
+        ab = AnnotationBbox(imagebox, (fx, fy),
+                            xybox=(-6, 0),
+                            xycoords='figure fraction',
+                            boxcoords="offset points",
+                            frameon=False,
+                            box_alignment=(1.0, 0.5),
+                            zorder=10)
+        fig.add_artist(ab)
+
 
 # Helper: desaturate color for negative values
 def desaturate_color(hexcolor, factor=0.4):

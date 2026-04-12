@@ -1,36 +1,23 @@
 #!/usr/bin/env python3
 """
-Grouped bar chart comparing prompt types (default, default + text repr,
-prompt engineering) across board types.  Values are averaged over all
-models that have results for a given prompt × board combination.
+Line chart comparing prompt types (default, default + text repr,
+prompt engineering) across board types for Qwen 3.5 397B.
+
+Shows the impact of prompt design on task accuracy, with SPaRC baseline
+as a horizontal reference line.
 """
 
 import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from pathlib import Path
-from plot_config import setup_plot_style, TEXT_WIDTH_INCHES
-
-# ── Constants ─────────────────────────────────────────────────────────────
-
-BOARD_ORDER = [
-    "original",
-    "coordinate_grid",
-    "start_end_marked",
-    "coordinate_grid_and_start_end_marked",
-    "path_cell_annotated",
-    "text",
-]
-
-BOARD_LABELS = {
-    "original":                              "Original",
-    "coordinate_grid":                       "Coord.\nGrid",
-    "start_end_marked":                      "Start/End\nMarked",
-    "coordinate_grid_and_start_end_marked":  "Coord. Grid\n+ S/E",
-    "path_cell_annotated":                   "Cell\nAnnotated",
-    "text":                                  "Text",
-}
+from plot_config import (
+    setup_plot_style, COLUMN_WIDTH_INCHES, BOARD_TYPES, BOARD_LABELS,
+    BOARD_LABELS_MULTILINE,
+    get_sparc_accuracy, read_json_metric,
+)
 
 PROMPT_TYPES = ["default_no_tr", "default_tr", "prompt_engineering"]
 
@@ -46,45 +33,20 @@ PROMPT_COLORS = {
     "prompt_engineering":  "#FC8D62",
 }
 
-PROMPT_HATCHES = {
-    "default_no_tr":      "",
-    "default_tr":         "",
-    "prompt_engineering":  "",
+PROMPT_MARKERS = {
+    "default_no_tr":      "s",
+    "default_tr":         "D",
+    "prompt_engineering":  "o",
 }
-
-
-# ── Data loading ──────────────────────────────────────────────────────────
-
-def _read_accuracy(filepath):
-    with open(filepath) as f:
-        data = json.load(f)
-    if "error" in data or "accuracy" not in data:
-        return None
-    return data["accuracy"] * 100.0
-
 
 MODEL_FOLDER = "Qwen3.5-397B-A17B-AWQ"
 SPARC_CSV_STEM = "QuantTrio_Qwen3.5-397B-A17B-AWQ"
 
-
-def get_sparc_accuracy(sparc_dir):
-    """Return SPaRC baseline accuracy (%) for the target model."""
-    stats_file = sparc_dir / f"{SPARC_CSV_STEM}_vlm_stats.csv"
-    if not stats_file.exists():
-        return None
-    df = pd.read_csv(stats_file)
-    for _, row in df.iterrows():
-        if row["Metric"] == "Correctly Solved":
-            return float(str(row["Percentage"]).replace("%", ""))
-    return None
+BOARD_ORDER = list(reversed(BOARD_TYPES))
 
 
 def collect_data(test_dir):
-    """For each prompt_type × board_type, read accuracy for the target model.
-
-    Returns:
-        dict  prompt_type -> list[float|nan] (one per board in BOARD_ORDER)
-    """
+    """For each prompt_type x board_type, read accuracy for Qwen 3.5 397B."""
     model_dir = test_dir / "all" / MODEL_FOLDER
     if not model_dir.exists():
         return {}
@@ -93,18 +55,11 @@ def collect_data(test_dir):
     for pt in PROMPT_TYPES:
         vals = []
         for bt in BOARD_ORDER:
-            pattern = f"{bt}-B_{pt}-P_*_stats_overall.json"
-            matches = sorted(model_dir.glob(pattern))
-            if matches:
-                val = _read_accuracy(matches[-1])
-                vals.append(val if val is not None else np.nan)
-            else:
-                vals.append(np.nan)
+            val = read_json_metric(model_dir, bt, "accuracy", prompt_type=pt)
+            vals.append(val)
         result[pt] = vals
     return result
 
-
-# ── Chart ─────────────────────────────────────────────────────────────────
 
 def create_prompt_comparison_chart(test_dir, sparc_dir, output_path=None):
     setup_plot_style(use_latex=True)
@@ -114,48 +69,46 @@ def create_prompt_comparison_chart(test_dir, sparc_dir, output_path=None):
         print("No data found!")
         return None
 
-    sparc_acc = get_sparc_accuracy(sparc_dir)
+    sparc_file = sparc_dir / f"{SPARC_CSV_STEM}_vlm_stats.csv"
+    sparc_acc = get_sparc_accuracy(sparc_file) if sparc_file.exists() else None
 
     n_boards = len(BOARD_ORDER)
-    n_prompts = len(PROMPT_TYPES)
-    bar_width = 0.25
     x = np.arange(n_boards)
 
-    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_INCHES, TEXT_WIDTH_INCHES * 0.4))
+    fig, ax = plt.subplots(figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.8))
 
-    for i, pt in enumerate(PROMPT_TYPES):
+    for pt in PROMPT_TYPES:
         vals = data[pt]
-        offsets = x + (i - (n_prompts - 1) / 2) * bar_width
-        bars = ax.bar(
-            offsets,
-            [v if not np.isnan(v) else 0 for v in vals],
-            width=bar_width,
-            color=PROMPT_COLORS[pt],
-            hatch=PROMPT_HATCHES[pt],
-            label=PROMPT_LABELS[pt],
-            edgecolor="white",
-            linewidth=0.5,
-        )
-        for bar, v in zip(bars, vals):
-            if np.isnan(v):
-                continue
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + 0.8,
-                    f"{v:.1f}",
-                    ha="center", va="bottom",
-                    fontsize=6, fontweight="bold")
+        ax.plot(x, vals,
+                color=PROMPT_COLORS[pt],
+                marker=PROMPT_MARKERS[pt],
+                markersize=5,
+                linewidth=1.5,
+                label=PROMPT_LABELS[pt],
+                zorder=3)
 
-    max_val = max(v for vals in data.values() for v in vals if not np.isnan(v))
-    y_top = max(max_val, sparc_acc or 0) * 1.18
+        for xi, v in zip(x, vals):
+            if not np.isnan(v):
+                ax.text(xi, v + 1.5, f"{v:.1f}",
+                        ha="center", va="bottom",
+                        fontsize=5.5, fontweight="bold",
+                        color=PROMPT_COLORS[pt])
 
     if sparc_acc is not None:
-        ax.axhline(sparc_acc, color="#333333", linewidth=1.2, linestyle="--",
-                    zorder=3, label=f"SPaRC Baseline ({sparc_acc:.1f}\\%)")
+        ax.axhline(sparc_acc, color="#333333", linewidth=1.0, linestyle="--",
+                   zorder=2, alpha=0.7)
+        ax.text(n_boards - 0.7, sparc_acc + 1.2,
+                f"SPaRC Baseline ({sparc_acc:.1f}\\%)",
+                fontsize=6, color="#333333", ha="right", va="bottom")
 
     ax.set_xticks(x)
-    ax.set_xticklabels([BOARD_LABELS[bt] for bt in BOARD_ORDER], fontsize=7)
+    ax.set_xticklabels([BOARD_LABELS_MULTILINE[bt] for bt in BOARD_ORDER], fontsize=7)
     ax.set_ylabel("Accuracy (\\%)")
+
+    all_valid = [v for vals in data.values() for v in vals if not np.isnan(v)]
+    y_top = max(max(all_valid), sparc_acc or 0) * 1.15
     ax.set_ylim(0, y_top)
+    ax.set_xlim(-0.3, n_boards - 0.7)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -163,7 +116,6 @@ def create_prompt_comparison_chart(test_dir, sparc_dir, output_path=None):
 
     ax.legend(
         fontsize=7,
-        ncol=n_prompts + 1,
         loc="upper left",
         frameon=True,
         edgecolor="0.85",

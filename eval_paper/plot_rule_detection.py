@@ -33,11 +33,11 @@ BOARD_ORDER = [
 
 BOARD_LABELS = {
     "original":                              "Original",
-    "coordinate_grid":                       "Coord.\nGrid",
-    "start_end_marked":                      "Start/End\nMarked",
-    "coordinate_grid_and_start_end_marked":  "Coord. Grid\n+ S/E",
-    "path_cell_annotated":                   "Cell\nAnnotated",
-    "text":                                  "Text",
+    "coordinate_grid":                       "Axis\nLabels",
+    "start_end_marked":                      "S/E\nMarkers",
+    "coordinate_grid_and_start_end_marked":  "Axis Labels\n+ S/E",
+    "path_cell_annotated":                   "Cell\nCoordinates",
+    "text":                                  "Text\nSymbols",
 }
 
 RULE_TYPES = ["+", "N", ".", "o", "*", "T", "G", "S", "E", "P", "Y"]

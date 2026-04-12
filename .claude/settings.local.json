@@ -5,7 +5,11 @@
       "Bash(python3 -m json.tool)",
       "Bash(python3:*)",
       "Bash(grep -h '\"model\"' /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/evaluation/results/test/all/*/original-B_prompt_engineering-P*stats_overall.json)",
-      "Bash(ls /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/evaluation/results/sparc/*_vlm_stats.csv)"
+      "Bash(ls /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/evaluation/results/sparc/*_vlm_stats.csv)",
+      "Bash(cat /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/evaluation/results/object_detection/test/all/Qwen3.5-397B-A17B-AWQ/text-B_prompt_engineering-P_*_stats_overall.json)",
+      "Bash(python:*)",
+      "Bash(ls /Users/larskaesberg/Documents/Cursor/sparcVisualPuzzleEvaluation/eval_paper/plot_*.py)",
+      "Read(//private/tmp/spatial-gym-analysis/**)"
     ]
   }
 }

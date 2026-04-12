@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "matplotlib",
+  "owner": "k-dense-ai",
+  "repo": "claude-scientific-skills",
+  "path": "scientific-skills/matplotlib",
+  "branch": "main",
+  "sha": "b510fa4ffff516ec674b59c802a0276f64cc6b79",
+  "source": "manual"
+}

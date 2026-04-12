@@ -43,11 +43,11 @@ BOARD_TYPES = [
 
 BOARD_LABELS = {
     "original":                              "Original",
-    "text":                                  "Text",
-    "coordinate_grid":                       "Coord. Grid",
-    "start_end_marked":                      "Start/End Marked",
-    "coordinate_grid_and_start_end_marked":  "Coord. Grid + S/E",
-    "path_cell_annotated":                   "Cell Annotated",
+    "text":                                  "Text Symbols",
+    "coordinate_grid":                       "Axis Labels",
+    "start_end_marked":                      "S/E Markers",
+    "coordinate_grid_and_start_end_marked":  "Axis Labels + S/E",
+    "path_cell_annotated":                   "Cell Coordinates",
 }
 
 

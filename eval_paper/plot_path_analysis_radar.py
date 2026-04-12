@@ -3,8 +3,7 @@
 Radar plot of avg_path_analysis_metrics per board type (+ SPaRC baseline),
 with each metric averaged across all models.
 
-Axes  = 5 path-analysis metrics
-Lines = 6 board types + 1 SPaRC baseline
+Reduced to 4 lines for readability: SPaRC baseline, Original, Cell Annotated, Text.
 """
 
 import json
@@ -14,38 +13,16 @@ import numpy as np
 from pathlib import Path
 from matplotlib.lines import Line2D
 from plot_config import (
-    setup_plot_style,
-    COLUMN_WIDTH_INCHES,
+    setup_plot_style, COLUMN_WIDTH_INCHES,
+    MODEL_REGISTRY, DEFAULT_PROMPT,
 )
 
-# ── Shared constants ──────────────────────────────────────────────────────
-
-MODEL_REGISTRY = {
-    "google_gemma-3-27b-it":                          ("gemma-3-27b-it",                          "Gemma 3 27B"),
-    "google_gemma-4-31B-it":                          ("gemma-4-31B-it",                          "Gemma 4 31B"),
-    "Qwen_Qwen3.5-27B":                              ("Qwen3.5-27B",                             "Qwen 3.5 27B"),
-    "QuantTrio_Qwen3.5-397B-A17B-AWQ":               ("Qwen3.5-397B-A17B-AWQ",                  "Qwen 3.5 397B"),
-    "meta-llama_Llama-4-Scout-17B-16E-Instruct":     ("Llama-4-Scout-17B-16E-Instruct",         "Llama 4 Scout"),
-    "mistralai_Mistral-Small-3.2-24B-Instruct-2506": ("Mistral-Small-3.2-24B-Instruct-2506",    "Mistral Small 3.2"),
-    "zai-org_GLM-4.6V":                              ("GLM-4.6V",                                "GLM 4.6V"),
-}
-
-BOARD_TYPES = [
-    "text",
-    "path_cell_annotated",
-    "coordinate_grid_and_start_end_marked",
-    "start_end_marked",
-    "coordinate_grid",
-    "original",
-]
+SELECTED_BOARDS = ["original", "path_cell_annotated", "text"]
 
 BOARD_LABELS = {
-    "original":                              "Original",
-    "text":                                  "Text",
-    "coordinate_grid":                       "Coord. Grid",
-    "start_end_marked":                      "Start/End Marked",
-    "coordinate_grid_and_start_end_marked":  "Coord. Grid + S/E",
-    "path_cell_annotated":                   "Cell Annotated",
+    "original":           "Original",
+    "path_cell_annotated": "Cell Coordinates",
+    "text":               "Text Symbols",
 }
 
 PATH_METRICS = [
@@ -73,21 +50,15 @@ SPARC_CSV_METRIC_MAP = {
 }
 
 BOARD_COLORS = {
-    "original":                              "#B71C1C",
-    "coordinate_grid":                       "#1565C0",
-    "coordinate_grid_and_start_end_marked":  "#0277BD",
-    "start_end_marked":                      "#2E7D32",
-    "path_cell_annotated":                   "#E65100",
-    "text":                                  "#6A1B9A",
+    "original":           "#B71C1C",
+    "path_cell_annotated": "#E65100",
+    "text":               "#6A1B9A",
 }
 
 SPARC_COLOR = "#333333"
 
 
-# ── Data loading ──────────────────────────────────────────────────────────
-
 def _get_sparc_path_metrics(stats_file):
-    """Return path analysis metrics (0-1) from a sparc CSV."""
     df = pd.read_csv(stats_file)
     metrics = {}
     for _, row in df.iterrows():
@@ -99,8 +70,7 @@ def _get_sparc_path_metrics(stats_file):
 
 
 def _get_test_path_metrics(model_dir, board_type):
-    """Return avg_path_analysis_metrics dict from the latest stats JSON."""
-    pattern = f"{board_type}-B_*_stats_overall.json"
+    pattern = f"{board_type}-B_{DEFAULT_PROMPT}-P_*_stats_overall.json"
     matches = sorted(model_dir.glob(pattern))
     if not matches:
         return None
@@ -112,14 +82,7 @@ def _get_test_path_metrics(model_dir, board_type):
 
 
 def collect_radar_data(sparc_dir, test_dir):
-    """Collect per-board-type and SPaRC metrics, averaged across models.
-
-    Returns:
-        board_avg: dict  board_type -> {metric: mean_value}
-        sparc_avg: dict  metric -> mean_value
-    """
-    # per_board[bt] = list of metric dicts (one per model)
-    per_board = {bt: [] for bt in BOARD_TYPES}
+    per_board = {bt: [] for bt in SELECTED_BOARDS}
     sparc_all = []
 
     for sparc_stem, (test_folder, _) in MODEL_REGISTRY.items():
@@ -130,12 +93,11 @@ def collect_radar_data(sparc_dir, test_dir):
         sparc_all.append(_get_sparc_path_metrics(sparc_file))
 
         model_dir = test_dir / "all" / test_folder
-        for bt in BOARD_TYPES:
+        for bt in SELECTED_BOARDS:
             m = _get_test_path_metrics(model_dir, bt)
             if m is not None:
                 per_board[bt].append(m)
 
-    # Average each metric across models
     def _avg_metrics(dicts):
         out = {}
         for key in PATH_METRICS:
@@ -148,8 +110,6 @@ def collect_radar_data(sparc_dir, test_dir):
 
     return board_avg, sparc_avg
 
-
-# ── Radar chart ───────────────────────────────────────────────────────────
 
 def create_radar_chart(sparc_dir, test_dir, output_path=None):
     setup_plot_style(use_latex=True)
@@ -166,9 +126,8 @@ def create_radar_chart(sparc_dir, test_dir, output_path=None):
         subplot_kw={"projection": "polar"},
     )
 
-    markers = ["s", "D", "^", "v", "o", "P"]
+    markers = {"original": "o", "path_cell_annotated": "s", "text": "P"}
 
-    # SPaRC baseline (drawn first, thicker, behind)
     sparc_vals = [sparc_avg.get(m, 0) for m in PATH_METRICS] + \
                  [sparc_avg.get(PATH_METRICS[0], 0)]
     ax.plot(angles, sparc_vals, linewidth=2.0, color=SPARC_COLOR,
@@ -176,17 +135,15 @@ def create_radar_chart(sparc_dir, test_dir, output_path=None):
             label="SPaRC Baseline", zorder=5)
     ax.fill(angles, sparc_vals, color=SPARC_COLOR, alpha=0.05)
 
-    # One line per board type
-    for i, bt in enumerate(BOARD_TYPES):
+    for bt in SELECTED_BOARDS:
         color = BOARD_COLORS[bt]
         vals = [board_avg[bt].get(m, 0) for m in PATH_METRICS] + \
                [board_avg[bt].get(PATH_METRICS[0], 0)]
-        ax.plot(angles, vals, linewidth=1.4, color=color,
-                marker=markers[i % len(markers)], markersize=4,
+        ax.plot(angles, vals, linewidth=1.6, color=color,
+                marker=markers[bt], markersize=5,
                 label=BOARD_LABELS[bt], zorder=6)
-        ax.fill(angles, vals, color=color, alpha=0.06)
+        ax.fill(angles, vals, color=color, alpha=0.08)
 
-    # Axis labels
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(
         [METRIC_LABELS[m] for m in PATH_METRICS],

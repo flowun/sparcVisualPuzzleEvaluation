@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Line chart showing model accuracy by puzzle difficulty level (1–5)
-from the SPaRC evaluation.
+Line chart showing model accuracy by puzzle difficulty level (1-5).
+
+Dashed lines = original SPaRC evaluation.
+Solid lines = controlled evaluation with best board (text) + prompt_engineering.
+
+Annotates the Qwen 3.5 scaling observation: its accuracy decreases linearly
+with difficulty while other models show a more logarithmic (steep early) drop.
 """
 
 import json
@@ -9,28 +14,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from plot_config import setup_plot_style, COLUMN_WIDTH_INCHES, get_model_color
-
-# ── Constants ─────────────────────────────────────────────────────────────
-
-MODEL_REGISTRY = {
-    "google_gemma-3-27b-it":                          ("gemma-3-27b-it",          "Gemma 3 27B"),
-    "google_gemma-4-31B-it":                          ("gemma-4-31B-it",          "Gemma 4 31B"),
-    "Qwen_Qwen3.5-27B":                              ("Qwen3.5-27B",             "Qwen 3.5 27B"),
-    "QuantTrio_Qwen3.5-397B-A17B-AWQ":               ("Qwen3.5-397B-A17B-AWQ",  "Qwen 3.5 397B"),
-    "meta-llama_Llama-4-Scout-17B-16E-Instruct":     ("Llama-4-Scout-17B-16E-Instruct", "Llama 4 Scout"),
-    "mistralai_Mistral-Small-3.2-24B-Instruct-2506": ("Mistral-Small-3.2-24B-Instruct-2506", "Mistral Small 3.2"),
-    "zai-org_GLM-4.6V":                              ("GLM-4.6V",                "GLM 4.6V"),
-}
+from plot_config import (
+    setup_plot_style, COLUMN_WIDTH_INCHES, get_model_color,
+    MODEL_REGISTRY, DEFAULT_PROMPT,
+)
 
 DIFFICULTY_LEVELS = [1, 2, 3, 4, 5]
-
 MARKERS = ["o", "s", "D", "^", "v", "P", "X"]
-
 BOARD_TYPE = "text"
 
-
-# ── Data loading ──────────────────────────────────────────────────────────
 
 def get_sparc_difficulty(stats_file):
     """Return list of accuracy (%) for difficulty 1-5 from a sparc CSV."""
@@ -46,7 +38,7 @@ def get_sparc_difficulty(stats_file):
 
 def get_test_difficulty(model_dir):
     """Return difficulty accuracy (%) for the text board type, levels 1-5."""
-    pattern = f"{BOARD_TYPE}-B_prompt_engineering-P_*_stats_overall.json"
+    pattern = f"{BOARD_TYPE}-B_{DEFAULT_PROMPT}-P_*_stats_overall.json"
     matches = sorted(model_dir.glob(pattern))
     if not matches:
         return [np.nan] * 5
@@ -60,7 +52,6 @@ def get_test_difficulty(model_dir):
 
 
 def collect_data(sparc_dir, test_dir):
-    """Return list of dicts with display_name, sparc_accs, test_accs."""
     results = []
     for sparc_stem, (test_folder, display_name) in MODEL_REGISTRY.items():
         sparc_file = sparc_dir / f"{sparc_stem}_vlm_stats.csv"
@@ -68,7 +59,6 @@ def collect_data(sparc_dir, test_dir):
             continue
 
         sparc_accs = get_sparc_difficulty(sparc_file)
-
         model_dir = test_dir / "all" / test_folder
         test_accs = get_test_difficulty(model_dir)
 
@@ -81,8 +71,6 @@ def collect_data(sparc_dir, test_dir):
     results.sort(key=lambda d: np.nanmean(d["sparc_accs"]), reverse=True)
     return results
 
-
-# ── Chart ─────────────────────────────────────────────────────────────────
 
 def create_difficulty_chart(sparc_dir, test_dir, output_path=None):
     setup_plot_style(use_latex=True)
@@ -108,6 +96,25 @@ def create_difficulty_chart(sparc_dir, test_dir, output_path=None):
         ax.plot(x, d["test_accs"], color=color, marker=marker,
                 markersize=4, linewidth=1.3, label=d["display_name"])
 
+    # Annotate the Qwen 3.5 scaling finding
+    qwen35_data = [d for d in data if "Qwen 3.5 397B" in d["display_name"]]
+    if qwen35_data:
+        d = qwen35_data[0]
+        accs = d["test_accs"]
+        if not any(np.isnan(a) for a in accs) and accs[0] > 0:
+            mid_x = 3
+            mid_y = accs[2] if not np.isnan(accs[2]) else 30
+            ax.annotate(
+                "Linear decay",
+                xy=(mid_x, mid_y), xytext=(mid_x + 0.6, mid_y + 12),
+                fontsize=5.5, color=get_model_color(d["display_name"]),
+                arrowprops=dict(arrowstyle="->", color=get_model_color(d["display_name"]),
+                                lw=0.8),
+                bbox=dict(boxstyle="round,pad=0.2", facecolor="white",
+                          edgecolor=get_model_color(d["display_name"]), alpha=0.9,
+                          linewidth=0.6),
+            )
+
     ax.set_xticks(DIFFICULTY_LEVELS)
     ax.set_xlabel("Difficulty Level")
     ax.set_ylabel("Accuracy (\\%)")
@@ -131,7 +138,7 @@ def create_difficulty_chart(sparc_dir, test_dir, output_path=None):
     fig.legend(
         all_handles, all_labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, -0.18),
+        bbox_to_anchor=(0.5, -0.22),
         fontsize=7,
         ncol=3,
         frameon=False,

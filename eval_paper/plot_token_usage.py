@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 """
 Chart showing average completion-token generation per task,
-broken down by board type and model, across difficulty levels 1–5.
+broken down by board type and model, across difficulty levels 1-5.
+
+Annotates the Qwen 3.5 397B panel to highlight its good linear scaling
+of token usage with difficulty.
 """
 
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from pathlib import Path
-from plot_config import setup_plot_style, TEXT_WIDTH_INCHES, get_model_color
-
-# ── Constants ─────────────────────────────────────────────────────────────
+from plot_config import (
+    setup_plot_style, TEXT_WIDTH_INCHES, get_model_color,
+    BOARD_TYPES, BOARD_LABELS, BOARD_COLORS, BOARD_MARKERS,
+    DEFAULT_PROMPT,
+)
 
 MODEL_REGISTRY = {
     "gemma-3-27b-it":                          "Gemma 3 27B",
@@ -22,50 +28,11 @@ MODEL_REGISTRY = {
     "GLM-4.6V":                                "GLM 4.6V",
 }
 
-BOARD_TYPES = [
-    "original",
-    "coordinate_grid",
-    "start_end_marked",
-    "coordinate_grid_and_start_end_marked",
-    "path_cell_annotated",
-    "text",
-]
-
-BOARD_LABELS = {
-    "original":                                "Original",
-    "coordinate_grid":                         "Coord. Grid",
-    "start_end_marked":                        "Start/End",
-    "coordinate_grid_and_start_end_marked":    "Coord. + S/E",
-    "path_cell_annotated":                     "Cell Annot.",
-    "text":                                    "Text",
-}
-
-BOARD_COLORS = {
-    "original":                                "#E53935",
-    "coordinate_grid":                         "#1E88E5",
-    "start_end_marked":                        "#43A047",
-    "coordinate_grid_and_start_end_marked":    "#FB8C00",
-    "path_cell_annotated":                     "#8E24AA",
-    "text":                                    "#00897B",
-}
-
-BOARD_MARKERS = {
-    "original":                                "o",
-    "coordinate_grid":                         "s",
-    "start_end_marked":                        "D",
-    "coordinate_grid_and_start_end_marked":    "^",
-    "path_cell_annotated":                     "v",
-    "text":                                    "P",
-}
-
 DIFFICULTY_LEVELS = [1, 2, 3, 4, 5]
 
 
-# ── Data loading ──────────────────────────────────────────────────────────
-
 def _read_tokens_by_difficulty(model_dir, board_type):
-    """Return dict {difficulty_level: avg_completion_tokens} or None."""
-    pattern = f"{board_type}-B_prompt_engineering-P_*_stats_overall.json"
+    pattern = f"{board_type}-B_{DEFAULT_PROMPT}-P_*_stats_overall.json"
     matches = sorted(model_dir.glob(pattern))
     if not matches:
         return None
@@ -80,7 +47,6 @@ def _read_tokens_by_difficulty(model_dir, board_type):
 
 
 def collect_data(test_dir):
-    """Return nested dict: model_name -> board_type -> [tokens per difficulty 1-5]."""
     results = {}
     for folder, display_name in MODEL_REGISTRY.items():
         model_dir = test_dir / "all" / folder
@@ -96,8 +62,6 @@ def collect_data(test_dir):
             results[display_name] = model_data
     return results
 
-
-# ── Chart ─────────────────────────────────────────────────────────────────
 
 def create_token_chart(test_dir, output_path=None):
     setup_plot_style(use_latex=True)
@@ -144,6 +108,15 @@ def create_token_chart(test_dir, output_path=None):
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
         ax.grid(axis="y", linewidth=0.3, alpha=0.5)
+
+        if model == "Qwen 3.5 397B":
+            ax.annotate(
+                "Good scaling",
+                xy=(0.95, 0.05), xycoords="axes fraction",
+                fontsize=5, color="#555555", ha="right", va="bottom",
+                bbox=dict(boxstyle="round,pad=0.2", facecolor="#FFFFCC",
+                          edgecolor="#CCCC00", alpha=0.9, linewidth=0.5),
+            )
 
     for idx in range(n_models, n_rows * n_cols):
         row, col = divmod(idx, n_cols)
