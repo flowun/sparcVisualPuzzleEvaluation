@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from pathlib import Path
-from plot_config import setup_plot_style, TEXT_WIDTH_INCHES
+from plot_config import setup_plot_style, COLUMN_WIDTH_INCHES
 
 MODEL_FOLDERS = [
     "Qwen3.5-397B-A17B-AWQ",
@@ -97,11 +97,29 @@ def collect_averaged_matrix(od_dir, board_type):
     return np.mean(matrices, axis=0)
 
 
-def _draw_matrix(ax, matrix, title, show_ylabels=True):
-    cmap = mcolors.LinearSegmentedColormap.from_list(
-        "blues", ["#F7FBFF", "#C6DBEF", "#6BAED6", "#2171B5", "#08306B"])
+CMAP = mcolors.LinearSegmentedColormap.from_list(
+    "matrix_rocket",
+    [
+        (0.00, "#FCFAF7"),
+        (0.10, "#FBE3D2"),
+        (0.25, "#F2B292"),
+        (0.45, "#DE6F66"),
+        (0.65, "#A93B5C"),
+        (0.85, "#561A3F"),
+        (1.00, "#180720"),
+    ],
+)
 
-    im = ax.imshow(matrix, cmap=cmap, vmin=0, vmax=1.0, aspect="equal")
+LABEL_COLOR  = "#222222"
+TICK_COLOR   = "#444444"
+LIGHT_TEXT   = "#FFFFFF"
+DARK_TEXT    = "#2F2F2F"
+SOFT_TEXT    = "#5A5A5A"
+
+
+def _draw_matrix(ax, matrix, title, show_xticks=True):
+    im = ax.imshow(matrix, cmap=CMAP, vmin=0, vmax=1.0, aspect="equal",
+                   interpolation="nearest")
 
     n = len(ORDERED_TYPES)
     labels = [TYPE_LABELS[t] for t in ORDERED_TYPES]
@@ -111,28 +129,37 @@ def _draw_matrix(ax, matrix, title, show_ylabels=True):
             val = matrix[i, j]
             if val < 0.005:
                 continue
-            text_color = "white" if val >= 0.45 else "black"
+            if val >= 0.50:
+                color = LIGHT_TEXT
+            elif val >= 0.05:
+                color = DARK_TEXT
+            else:
+                color = SOFT_TEXT
             fontweight = "bold" if i == j else "normal"
             ax.text(j, i, f"{val:.2f}", ha="center", va="center",
-                    fontsize=5.5, color=text_color, fontweight=fontweight)
+                    fontsize=5, color=color, fontweight=fontweight)
 
+    # Subtle white cell separators for a clean tiled look.
     ax.set_xticks(np.arange(-0.5, n, 1), minor=True)
     ax.set_yticks(np.arange(-0.5, n, 1), minor=True)
-    ax.grid(which="minor", color="#e0e0e0", linewidth=0.4, alpha=0.8)
+    ax.grid(which="minor", color="white", linewidth=0.6, alpha=0.85)
     ax.tick_params(which="minor", bottom=False, left=False)
+    ax.tick_params(which="major", length=0, color=TICK_COLOR)
 
     ax.set_xticks(range(n))
-    ax.set_xticklabels(labels, fontsize=5.5, rotation=45, ha="right")
-    ax.set_yticks(range(n))
-    if show_ylabels:
-        ax.set_yticklabels(labels, fontsize=5.5)
+    if show_xticks:
+        ax.set_xticklabels(labels, fontsize=6.5, rotation=40, ha="right",
+                           color=TICK_COLOR)
+        ax.set_xlabel("Detected Type", fontsize=8, labelpad=2,
+                      color=LABEL_COLOR)
     else:
-        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+    ax.set_yticks(range(n))
+    ax.set_yticklabels(labels, fontsize=6.5, color=TICK_COLOR)
+    ax.set_ylabel("True Type", fontsize=8, labelpad=2, color=LABEL_COLOR)
 
-    ax.set_title(title, fontsize=8, pad=4)
-    ax.set_xlabel("Detected Type", fontsize=7)
-    if show_ylabels:
-        ax.set_ylabel("True Type", fontsize=7)
+    ax.set_title(title, fontsize=9.5, pad=2, color="#111111",
+                 fontweight="bold")
 
     for spine in ax.spines.values():
         spine.set_visible(False)
@@ -151,19 +178,29 @@ def create_confusion_comparison(od_dir, output_path=None):
         return None
 
     fig, (ax1, ax2) = plt.subplots(
-        1, 2,
-        figsize=(TEXT_WIDTH_INCHES, TEXT_WIDTH_INCHES * 0.42),
-        gridspec_kw={"wspace": 0.15, "width_ratios": [1.12, 1]},
+        2, 1,
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 1.50),
+        gridspec_kw={"hspace": 0.06},
     )
 
-    _draw_matrix(ax1, matrix_orig, "Original Board", show_ylabels=True)
-    im = _draw_matrix(ax2, matrix_text, "Text Board", show_ylabels=False)
+    _draw_matrix(ax1, matrix_orig, "Original Board", show_xticks=False)
+    im = _draw_matrix(ax2, matrix_text, "Text Board", show_xticks=True)
 
-    cbar = fig.colorbar(im, ax=[ax1, ax2], fraction=0.025, pad=0.03,
-                        shrink=0.85)
-    cbar.ax.set_ylabel("Row-Normalized Frequency", fontsize=7)
-    cbar.ax.tick_params(labelsize=5.5)
-    cbar.outline.set_visible(False)
+    cbar = fig.colorbar(
+        im, ax=[ax1, ax2], orientation="vertical",
+        fraction=0.038, pad=0.025, shrink=0.95, aspect=30,
+    )
+    cbar.set_ticks([0.0, 0.25, 0.5, 0.75, 1.0])
+    cbar.set_ticklabels(["0", "0.25", "0.5", "0.75", "1"])
+    cbar.ax.tick_params(labelsize=6.5, length=2.5, width=0.5,
+                        color=TICK_COLOR, pad=2)
+    for label in cbar.ax.get_yticklabels():
+        label.set_color(TICK_COLOR)
+    cbar.set_label("Row Frequency", fontsize=7.5, labelpad=6,
+                   color=LABEL_COLOR)
+    cbar.outline.set_visible(True)
+    cbar.outline.set_edgecolor("#666666")
+    cbar.outline.set_linewidth(0.6)
 
     if output_path:
         plt.savefig(output_path, dpi=300, bbox_inches="tight")

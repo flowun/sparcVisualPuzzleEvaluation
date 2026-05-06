@@ -84,7 +84,7 @@ def create_correlation_chart(test_dir, od_dir, output_path=None):
     p_str = "p < 0.001" if p_value < 0.001 else f"p = {p_value:.3f}"
     ax.text(0.05, 0.95,
             f"$r = {r_value:.2f}$\n$R^2 = {r_squared:.2f}$\n${p_str}$",
-            transform=ax.transAxes, fontsize=6, va="top", ha="left",
+            transform=ax.transAxes, fontsize=7, va="top", ha="left",
             bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
                       edgecolor="0.8", alpha=0.9))
 
@@ -95,27 +95,37 @@ def create_correlation_chart(test_dir, od_dir, output_path=None):
             seen_models.append(display)
             model_handles.append(
                 mlines.Line2D([], [], color=get_model_color(display), marker="o",
-                              linestyle="", markersize=4, label=display,
+                              linestyle="", markersize=5, label=display,
                               markeredgecolor="white", markeredgewidth=0.3)
             )
 
     board_handles = [
         mlines.Line2D([], [], color="#555555", marker=BOARD_MARKERS[bt],
-                      linestyle="", markersize=4,
+                      linestyle="", markersize=5,
                       label=BOARD_LABELS[bt])
         for bt in BOARD_TYPES
     ]
 
-    leg1 = ax.legend(handles=model_handles, fontsize=5.5, loc="lower right",
-                     frameon=True, framealpha=0.95, fancybox=False,
-                     title="\\textbf{Model}", title_fontsize=5.5,
-                     handletextpad=0.3)
-    ax.add_artist(leg1)
-    ax.legend(handles=board_handles, fontsize=5.5, loc="upper center",
-              bbox_to_anchor=(0.58, 1.0),
-              frameon=True, framealpha=0.95, fancybox=False,
-              title="\\textbf{Board Type}", title_fontsize=5.5,
-              handletextpad=0.3, ncol=2, columnspacing=0.5)
+    # Board type legend: bottom right inside the plot, single column.
+    leg_board = ax.legend(handles=board_handles, fontsize=7,
+                          loc="lower right",
+                          bbox_to_anchor=(1.03, 0.0),
+                          frameon=True, framealpha=0.95, fancybox=False,
+                          title=r"\textbf{Board Type}", title_fontsize=7,
+                          handletextpad=0.4, ncol=1, borderpad=0.4,
+                          labelspacing=0.3)
+    ax.add_artist(leg_board)
+
+    # Model legend below the plot, 3 / 2 / 2 each row centered.
+    rows = [model_handles[:3], model_handles[3:5], model_handles[5:7]]
+    y_top = -0.02
+    row_height = 0.055
+    for i, row in enumerate(rows):
+        fig.legend(handles=row, fontsize=7,
+                   loc="upper center",
+                   bbox_to_anchor=(0.5, y_top - i * row_height),
+                   frameon=False, ncol=len(row),
+                   handletextpad=0.4, columnspacing=0.9)
 
     ax.set_xlabel("Board Detection Acc. (\\%)")
     ax.set_ylabel("Task Accuracy (\\%)")

@@ -1,70 +1,87 @@
 #!/usr/bin/env python3
 """
-Grouped bar chart showing object-detection accuracy (fraction_average)
-under worsening conditions and their annotation-recovery variants.
+Single-column difference chart for the object-detection worsening study.
 
-Demonstrates that cell annotations recover object detection accuracy
-under degraded visual conditions. Uses Gemma 4 31B and Qwen 3.5 397B.
-
-Includes group labels and recovery delta annotations.
+Mirrors plot_worsening.py: paired bars per worsening type show the bare
+worsening (Δ vs Original) next to the path-cell-annotated recovery
+(Δ vs Cell Coord.). Smaller-magnitude recovery bars indicate cell
+coordinates rescue most of the rule-detection accuracy lost to that
+worsening. Uses Qwen 3.5 397B and Gemma 4 31B.
 """
 
-import json
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patheffects as pe
+import matplotlib.patches as mpatches
+from matplotlib.legend_handler import HandlerBase
+from matplotlib.offsetbox import AnnotationBbox
 from pathlib import Path
 from plot_config import (
-    setup_plot_style, TEXT_WIDTH_INCHES, get_model_color,
-    read_json_metric,
+    setup_plot_style, COLUMN_WIDTH_INCHES, get_model_color,
+    read_json_metric, get_model_imagebox,
 )
+
+
+class _HandlerColorLogo(HandlerBase):
+    """Render a color swatch followed by the model logo as the legend handle."""
+
+    def __init__(self, display_name, color, zoom_factor=0.4):
+        super().__init__()
+        self._display_name = display_name
+        self._color = color
+        self._zoom_factor = zoom_factor
+
+    def create_artists(self, legend, orig_handle,
+                       xdescent, ydescent, width, height, fontsize, trans):
+        artists = []
+        swatch_w = width * 0.40
+        swatch = mpatches.Rectangle(
+            (xdescent, ydescent), swatch_w, height,
+            facecolor=self._color, edgecolor="white", linewidth=0.4,
+            transform=trans,
+        )
+        artists.append(swatch)
+        oi = get_model_imagebox(self._display_name, zoom_factor=self._zoom_factor)
+        if oi is not None:
+            ab = AnnotationBbox(
+                oi,
+                (xdescent + width * 0.78, ydescent + height / 2),
+                xycoords=trans, frameon=False, pad=0,
+            )
+            artists.append(ab)
+        return artists
+
 
 MODELS = [
     ("Qwen3.5-397B-A17B-AWQ", "Qwen 3.5 397B"),
     ("gemma-4-31B-it",         "Gemma 4 31B"),
 ]
 
-BOARD_ORDER = [
-    "original",
-    "path_cell_annotated",
-    "low_contrast",
-    "low_contrast_and_path_cell_annotated",
-    "low_resolution",
-    "low_resolution_and_path_cell_annotated",
-    "rotated",
-    "rotated_and_path_cell_annotated",
+# (board, x-tick label baseline, baseline_board_for_delta).
+CONDITIONS = [
+    ("low_contrast",                            "Low\nContrast",   "original"),
+    ("low_contrast_and_path_cell_annotated",    "+ Cell\nCoord.",  "path_cell_annotated"),
+    ("low_resolution",                          "Low\nResolution", "original"),
+    ("low_resolution_and_path_cell_annotated",  "+ Cell\nCoord.",  "path_cell_annotated"),
+    ("rotated",                                 "Rotated",          "original"),
+    ("rotated_and_path_cell_annotated",         "+ Cell\nCoord.",  "path_cell_annotated"),
 ]
 
-BOARD_LABELS = {
-    "original":                              "Original",
-    "path_cell_annotated":                   "Cell\nCoordinates",
-    "low_contrast":                          "Low\nContrast",
-    "low_contrast_and_path_cell_annotated":  "Low Contrast\n+ Cell Coord.",
-    "low_resolution":                        "Low\nResolution",
-    "low_resolution_and_path_cell_annotated": "Low Res.\n+ Cell Coord.",
-    "rotated":                               "Rotated",
-    "rotated_and_path_cell_annotated":       "Rotated\n+ Cell Coord.",
-}
-
-GROUP_LABELS = {
-    1.5: "Baseline",
-    3.5: "Low Contrast",
-    5.5: "Low Resolution",
-    7.0: "Rotation",
-}
-
-RECOVERY_PAIRS = [(2, 3), (4, 5), (6, 7)]
+GROUP_DIVIDERS = [1.5, 3.5]
 
 
 def collect_data(od_dir):
+    boards = {"original", "path_cell_annotated"}
+    for board, _, baseline in CONDITIONS:
+        boards.add(board)
+        boards.add(baseline)
+
     result = {}
     for folder, _ in MODELS:
         model_dir = od_dir / "all" / folder
-        vals = []
-        for bt in BOARD_ORDER:
-            val = read_json_metric(model_dir, bt, "fraction_average",
-                                   prompt_type="default")
-            vals.append(val)
+        vals = {}
+        for bt in boards:
+            vals[bt] = read_json_metric(model_dir, bt, "fraction_average",
+                                        prompt_type="default")
         result[folder] = vals
     return result
 
@@ -74,83 +91,128 @@ def create_od_worsening_chart(od_dir, output_path=None):
 
     data = collect_data(od_dir)
 
-    n_boards = len(BOARD_ORDER)
+    n_conds = len(CONDITIONS)
     n_models = len(MODELS)
-    bar_width = 0.35
-    x = np.arange(n_boards)
+    bar_width = 0.36
 
-    fig, ax = plt.subplots(figsize=(TEXT_WIDTH_INCHES, TEXT_WIDTH_INCHES * 0.45))
+    x = np.arange(n_conds)
 
-    all_vals_flat = []
+    fig, ax = plt.subplots(
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.78)
+    )
 
+    # Subtle shading on the "+ Cell Coord." columns to distinguish them
+    # from the bare worsening columns next to them.
+    for col_x in [1, 3, 5]:
+        ax.axvspan(col_x - 0.5, col_x + 0.5,
+                   color="#EBEEF2", alpha=0.7, zorder=0)
+
+    all_deltas = []
+    legend_labels = []
     for i, (folder, display_name) in enumerate(MODELS):
         vals = data[folder]
         color = get_model_color(display_name)
+        orig = vals["original"]
+        cc = vals["path_cell_annotated"]
+        legend_labels.append(
+            f"{display_name} "
+            f"(Orig.: {orig:.1f}\\%, Cell Coord.: {cc:.1f}\\%)"
+        )
+        deltas = []
+        for board, _, baseline in CONDITIONS:
+            v = vals[board]
+            b = vals[baseline]
+            d = v - b if not np.isnan(v) and not np.isnan(b) else 0.0
+            deltas.append(d)
+            all_deltas.append(d)
         offsets = x + (i - (n_models - 1) / 2) * bar_width
-        bars = ax.bar(
+        ax.bar(
             offsets,
-            [v if not np.isnan(v) else 0 for v in vals],
+            deltas,
             width=bar_width,
             color=color,
-            label=display_name,
+            label=legend_labels[-1],
             edgecolor="white",
-            linewidth=0.5,
+            linewidth=0.4,
+            zorder=2,
         )
-        for bar, v in zip(bars, vals):
-            if np.isnan(v):
+        for off, d in zip(offsets, deltas):
+            if abs(d) < 0.05:
                 continue
-            all_vals_flat.append(v)
-            txt = ax.text(bar.get_x() + bar.get_width() / 2,
-                          bar.get_height() + 0.3,
-                          f"{v:.1f}",
-                          ha="center", va="bottom",
-                          fontsize=5.5, fontweight="bold",
-                          color=color)
-            txt.set_path_effects([pe.withStroke(linewidth=2, foreground="white")])
+            sign = "+" if d > 0 else ""
+            txt_offset = 0.2 if d > 0 else -0.2
+            va = "bottom" if d > 0 else "top"
+            ax.text(off, d + txt_offset, f"{sign}{d:.1f}",
+                    ha="center", va=va,
+                    fontsize=5.5, fontweight="bold", color=color)
 
-    y_max = max(all_vals_flat) * 1.18 if all_vals_flat else 100
+    y_lim = max(abs(min(all_deltas)), abs(max(all_deltas))) * 1.22
+    ax.set_ylim(-y_lim, y_lim)
 
-    for sep_x in [1.5, 3.5, 5.5]:
-        ax.axvline(sep_x, color="gray", linewidth=0.6, linestyle="--", alpha=0.4)
+    # Zero reference line.
+    ax.axhline(0, color="#333333", linewidth=0.9, zorder=1.5)
 
-    for gx, label in GROUP_LABELS.items():
-        ax.text(gx, y_max * 0.98, label,
-                ha="center", va="top", fontsize=6, color="#555555",
-                fontstyle="italic")
+    # Worsening-type label centered above each (worsening, recovery) pair.
+    worsening_groups = [
+        ((0, 1), "Low Contrast"),
+        ((2, 3), "Low Resolution"),
+        ((4, 5), "Rotated"),
+    ]
+    for (start, end), label in worsening_groups:
+        ax.text((start + end) / 2, y_lim * 0.96, label,
+                ha="center", va="top",
+                fontsize=7, color="#444444", fontstyle="italic",
+                fontweight="bold")
 
-    for worsened_idx, recovered_idx in RECOVERY_PAIRS:
-        for mi, (folder, display_name) in enumerate(MODELS):
-            vals = data[folder]
-            w_val = vals[worsened_idx]
-            r_val = vals[recovered_idx]
-            if np.isnan(w_val) or np.isnan(r_val):
-                continue
-            delta = r_val - w_val
-            mid_x = (worsened_idx + recovered_idx) / 2 + (mi - (n_models - 1) / 2) * bar_width
-            color = get_model_color(display_name)
-            sign = "+" if delta >= 0 else ""
-            txt = ax.text(mid_x, max(w_val, r_val) + y_max * 0.04,
-                          f"{sign}{delta:.1f}",
-                          ha="center", va="bottom", fontsize=5,
-                          color=color, fontweight="bold")
-            txt.set_path_effects([pe.withStroke(linewidth=1.5, foreground="white")])
+    for sep_x in GROUP_DIVIDERS:
+        ax.axvline(sep_x, color="#999999", linewidth=0.5, linestyle="--",
+                   alpha=0.55, zorder=1)
 
     ax.set_xticks(x)
-    ax.set_xticklabels([BOARD_LABELS[bt] for bt in BOARD_ORDER], fontsize=6.5)
-    ax.set_ylabel("Avg. Rule Detection Acc. (\\%)")
-    ax.set_ylim(0, y_max)
+    x_tick_labels = [
+        "Original" if baseline == "original" else "Cell\nCoord."
+        for _, _, baseline in CONDITIONS
+    ]
+    ax.set_xticklabels(x_tick_labels, fontsize=6.5)
+    ax.set_xlim(-0.5, n_conds - 0.5)
+    ax.set_ylabel(r"$\Delta$ Rule Detection (\%)", fontsize=8, labelpad=2)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.yaxis.grid(True, linestyle="--", alpha=0.3)
+    ax.tick_params(axis="y", labelsize=6.5)
+    ax.tick_params(axis="x", length=0, pad=1)
+    ax.grid(axis="y", linewidth=0.3, alpha=0.4, zorder=1)
     ax.set_axisbelow(True)
 
+    # Per-model logo zoom (Gemma is rendered slightly larger).
+    LOGO_ZOOM = {
+        "Qwen 3.5 397B": 0.55,
+        "Gemma 4 31B":   0.75,
+    }
+
+    legend_handles = []
+    handler_map = {}
+    for (folder, display_name), label in zip(MODELS, legend_labels):
+        color = get_model_color(display_name)
+        h = mpatches.Patch(color=color, label=label)
+        legend_handles.append(h)
+        handler_map[h] = _HandlerColorLogo(
+            display_name, color,
+            zoom_factor=LOGO_ZOOM.get(display_name, 0.55),
+        )
+
     ax.legend(
-        fontsize=7,
-        loc="upper right",
-        frameon=True,
-        framealpha=0.95,
-        fancybox=False,
+        legend_handles,
+        legend_labels,
+        handler_map=handler_map,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.10),
+        ncol=1,
+        fontsize=6.5,
+        frameon=False,
+        handletextpad=0.6,
+        handlelength=2.6,
+        labelspacing=0.30,
     )
 
     if output_path:
