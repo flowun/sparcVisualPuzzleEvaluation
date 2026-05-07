@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 """
-Line chart showing model accuracy by puzzle difficulty level (1-5).
-
-Dashed lines = original SPaRC evaluation.
-Solid lines = controlled evaluation with best board (text) + prompt_engineering.
-
-Annotates the Qwen 3.5 scaling observation: its accuracy decreases linearly
-with difficulty while other models show a more logarithmic (steep early) drop.
+Line chart of accuracy vs puzzle difficulty (1-5), comparing the original
+SPaRC evaluation (dashed) with our controlled evaluation on the text board
+(solid). One pair of lines per model, all on a single panel.
 """
 
 import json
@@ -25,7 +21,6 @@ BOARD_TYPE = "text"
 
 
 def get_sparc_difficulty(stats_file):
-    """Return list of accuracy (%) for difficulty 1-5 from a sparc CSV."""
     df = pd.read_csv(stats_file)
     accs = [np.nan] * 5
     for _, row in df.iterrows():
@@ -37,7 +32,6 @@ def get_sparc_difficulty(stats_file):
 
 
 def get_test_difficulty(model_dir):
-    """Return difficulty accuracy (%) for the text board type, levels 1-5."""
     pattern = f"{BOARD_TYPE}-B_{DEFAULT_PROMPT}-P_*_stats_overall.json"
     matches = sorted(model_dir.glob(pattern))
     if not matches:
@@ -57,18 +51,13 @@ def collect_data(sparc_dir, test_dir):
         sparc_file = sparc_dir / f"{sparc_stem}_vlm_stats.csv"
         if not sparc_file.exists():
             continue
-
         sparc_accs = get_sparc_difficulty(sparc_file)
         model_dir = test_dir / "all" / test_folder
         test_accs = get_test_difficulty(model_dir)
-
-        results.append({
-            "display_name": display_name,
-            "sparc_accs": sparc_accs,
-            "test_accs": test_accs,
-        })
-
-    results.sort(key=lambda d: np.nanmean(d["sparc_accs"]), reverse=True)
+        results.append({"display_name": display_name,
+                        "sparc_accs": sparc_accs,
+                        "test_accs": test_accs})
+    results.sort(key=lambda d: np.nanmean(d["test_accs"]), reverse=True)
     return results
 
 
@@ -81,7 +70,6 @@ def create_difficulty_chart(sparc_dir, test_dir, output_path=None):
         return None
 
     x = np.array(DIFFICULTY_LEVELS)
-
     fig, ax = plt.subplots(
         figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.85),
     )
@@ -89,35 +77,14 @@ def create_difficulty_chart(sparc_dir, test_dir, output_path=None):
     for i, d in enumerate(data):
         color = get_model_color(d["display_name"])
         marker = MARKERS[i % len(MARKERS)]
-
         ax.plot(x, d["sparc_accs"], color=color, marker=marker,
                 markersize=4, linewidth=1.3, linestyle="--", alpha=0.5)
-
         ax.plot(x, d["test_accs"], color=color, marker=marker,
                 markersize=4, linewidth=1.3, label=d["display_name"])
 
-    # Annotate the Qwen 3.5 scaling finding
-    qwen35_data = [d for d in data if "Qwen 3.5 397B" in d["display_name"]]
-    if qwen35_data:
-        d = qwen35_data[0]
-        accs = d["test_accs"]
-        if not any(np.isnan(a) for a in accs) and accs[0] > 0:
-            mid_x = 3
-            mid_y = accs[2] if not np.isnan(accs[2]) else 30
-            ax.annotate(
-                "Linear decay",
-                xy=(mid_x, mid_y), xytext=(mid_x + 0.6, mid_y + 12),
-                fontsize=5.5, color=get_model_color(d["display_name"]),
-                arrowprops=dict(arrowstyle="->", color=get_model_color(d["display_name"]),
-                                lw=0.8),
-                bbox=dict(boxstyle="round,pad=0.2", facecolor="white",
-                          edgecolor=get_model_color(d["display_name"]), alpha=0.9,
-                          linewidth=0.6),
-            )
-
     ax.set_xticks(DIFFICULTY_LEVELS)
     ax.set_xlabel("Difficulty Level")
-    ax.set_ylabel("Accuracy (\\%)")
+    ax.set_ylabel(r"Accuracy (\%)")
     ax.set_ylim(-2, 102)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -126,30 +93,34 @@ def create_difficulty_chart(sparc_dir, test_dir, output_path=None):
     from matplotlib.lines import Line2D
     style_handles = [
         Line2D([], [], color="0.4", linewidth=1.3, linestyle="--", alpha=0.5,
-               label="Original evaluation"),
-        Line2D([], [], color="0.4", linewidth=1.3,
-               label="Controlled evaluation"),
+               label="Original SPaRC"),
+        Line2D([], [], color="0.4", linewidth=1.3, label="Text Symbols (Controlled)"),
     ]
+    fig.legend(
+        style_handles, [h.get_label() for h in style_handles],
+        loc="upper center", bbox_to_anchor=(0.5, -0.04),
+        fontsize=7, ncol=2, frameon=False,
+        columnspacing=1.4, handlelength=2.0,
+    )
 
     model_handles, model_labels = ax.get_legend_handles_labels()
-    all_handles = style_handles + model_handles
-    all_labels = ["Original evaluation", "Controlled evaluation"] + model_labels
-
-    fig.legend(
-        all_handles, all_labels,
-        loc="lower center",
-        bbox_to_anchor=(0.5, -0.22),
-        fontsize=7,
-        ncol=3,
-        frameon=False,
-        columnspacing=1.0,
-        handlelength=2.0,
-    )
+    rows = [(model_handles[:3], model_labels[:3]),
+            (model_handles[3:5], model_labels[3:5]),
+            (model_handles[5:7], model_labels[5:7])]
+    for i, (h, l) in enumerate(rows):
+        if not h:
+            continue
+        fig.legend(
+            h, l,
+            loc="upper center",
+            bbox_to_anchor=(0.5, -0.10 - i * 0.06),
+            fontsize=7, ncol=len(h), frameon=False,
+            handletextpad=0.4, columnspacing=1.4,
+        )
 
     if output_path:
         plt.savefig(output_path, dpi=300, bbox_inches="tight")
         print(f"Chart saved to: {output_path}")
-
     return fig
 
 
@@ -161,7 +132,8 @@ def main():
     output_dir = base / "figures"
     output_dir.mkdir(exist_ok=True)
 
-    create_difficulty_chart(sparc_dir, test_dir, output_dir / "difficulty_comparison.pdf")
+    create_difficulty_chart(sparc_dir, test_dir,
+                            output_dir / "difficulty_comparison.pdf")
 
 
 if __name__ == "__main__":

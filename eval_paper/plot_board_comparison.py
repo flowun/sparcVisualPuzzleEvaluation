@@ -203,8 +203,8 @@ def create_board_comparison_chart(sparc_dir, test_dir, output_path=None):
     n_boards = len(BOARD_TYPES)
     xlim = _shared_xlim(data)
 
-    row_height = 0.26
-    fig_height = (1 + n_boards) * row_height + 0.45
+    row_height = 0.20
+    fig_height = (1 + n_boards) * row_height + 0.30
     fig_width = TEXT_WIDTH_INCHES
 
     fig = plt.figure(figsize=(fig_width, fig_height))
@@ -279,8 +279,8 @@ def create_rule_accuracy_chart(sparc_dir, od_dir, output_path=None):
     n_boards = len(BOARD_TYPES)
     xlim = _shared_xlim(data)
 
-    row_height = 0.26
-    fig_height = n_boards * row_height + 0.55
+    row_height = 0.20
+    fig_height = n_boards * row_height + 0.40
     fig_width = TEXT_WIDTH_INCHES
 
     fig = plt.figure(figsize=(fig_width, fig_height))
@@ -337,8 +337,8 @@ def create_rule_accuracy_chart(sparc_dir, od_dir, output_path=None):
         fig.legend(
             legend_handles,
             ["All Rules Correct", "Avg. Rule Accuracy"],
-            loc="lower center", ncol=2, frameon=False,
-            bbox_to_anchor=(0.5, -0.18),
+            loc="upper center", ncol=2, frameon=False,
+            bbox_to_anchor=(0.5, -0.05),
             edgecolor="0.8", fancybox=False,
         )
 
