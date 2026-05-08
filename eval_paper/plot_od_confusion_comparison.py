@@ -180,7 +180,7 @@ def create_confusion_comparison(od_dir, output_path=None):
     fig, (ax1, ax2) = plt.subplots(
         2, 1,
         figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 1.50),
-        gridspec_kw={"hspace": 0.06},
+        gridspec_kw={"hspace": 0.12},
     )
 
     _draw_matrix(ax1, matrix_orig, "Original Board", show_xticks=False)
