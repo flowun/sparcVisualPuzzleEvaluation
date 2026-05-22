@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerBase
+from matplotlib.lines import Line2D
 from matplotlib.offsetbox import AnnotationBbox
 from pathlib import Path
 from plot_config import (
@@ -93,7 +94,16 @@ def collect_data(test_dir):
     return result
 
 
-def create_worsening_chart(test_dir, output_path=None):
+def create_worsening_chart(test_dir, output_path=None, mode="delta"):
+    """Render the worsening study chart.
+
+    mode:
+        "delta"    — bars show v − baseline in percentage points (compact).
+        "relative" — bars show (v − baseline) / baseline × 100 (% change).
+        "absolute" — bars show absolute accuracy v; a short dashed segment per
+                     bar marks the matching baseline so the reader can see how
+                     far the bar fell from (or rose above) it.
+    """
     setup_plot_style(use_latex=True)
 
     data = collect_data(test_dir)
@@ -114,8 +124,9 @@ def create_worsening_chart(test_dir, output_path=None):
         ax.axvspan(col_x - 0.5, col_x + 0.5,
                    color="#EBEEF2", alpha=0.7, zorder=0)
 
-    all_deltas = []
+    all_vals = []
     legend_labels = []
+    model_baselines = []
     for i, (folder, display_name) in enumerate(MODELS):
         vals = data[folder]
         color = get_model_color(display_name)
@@ -125,39 +136,91 @@ def create_worsening_chart(test_dir, output_path=None):
             f"{display_name} "
             f"(Orig.: {orig:.1f}\\%, Cell Coord.: {cc:.1f}\\%)"
         )
-        deltas = []
+        bar_vals = []
+        baseline_vals = []
         for board, _, baseline in CONDITIONS:
             v = vals[board]
             b = vals[baseline]
-            d = v - b if not np.isnan(v) and not np.isnan(b) else 0.0
-            deltas.append(d)
-            all_deltas.append(d)
+            baseline_vals.append(b)
+            if np.isnan(v) or np.isnan(b):
+                bar_vals.append(0.0)
+                continue
+            if mode == "delta":
+                bar_vals.append(v - b)
+            elif mode == "relative":
+                bar_vals.append((v - b) / b * 100 if b > 0 else 0.0)
+            elif mode == "absolute":
+                bar_vals.append(v)
+            else:
+                raise ValueError(f"Unknown mode: {mode}")
+        all_vals.extend(bar_vals)
+        if mode == "absolute":
+            all_vals.extend([b for b in baseline_vals if not np.isnan(b)])
+        model_baselines.append(baseline_vals)
         offsets = x + (i - (n_models - 1) / 2) * bar_width
         ax.bar(
-            offsets,
-            deltas,
-            width=bar_width,
-            color=color,
-            label=legend_labels[-1],
-            edgecolor="white",
-            linewidth=0.4,
-            zorder=2,
+            offsets, bar_vals, width=bar_width,
+            color=color, label=legend_labels[-1],
+            edgecolor="white", linewidth=0.4, zorder=2,
         )
-        for off, d in zip(offsets, deltas):
-            if abs(d) < 0.05:
+
+        # In absolute mode, mark the baseline for each bar with a short
+        # black dashed segment so it stands out from the colored bar.
+        if mode == "absolute":
+            for off, b in zip(offsets, baseline_vals):
+                if np.isnan(b):
+                    continue
+                ax.hlines(
+                    b,
+                    off - bar_width / 2 - 0.02,
+                    off + bar_width / 2 + 0.02,
+                    colors="black", linestyles=(0, (2.5, 1.5)),
+                    linewidth=1.2, zorder=5,
+                )
+
+        for off, v_bar, b_val in zip(offsets, bar_vals, baseline_vals):
+            if mode == "absolute":
+                if v_bar < 0.05:
+                    continue
+                if np.isnan(b_val):
+                    txt = f"{v_bar:.1f}"
+                else:
+                    d = v_bar - b_val
+                    sign = "+" if d > 0 else ""
+                    txt = f"{sign}{d:.1f}"
+                txt_offset = max(all_vals) * 0.018
+                # When the baseline marker sits above the bar, place the
+                # value label above the marker so they don't collide.
+                anchor_y = v_bar
+                if not np.isnan(b_val) and b_val > v_bar:
+                    anchor_y = b_val
+                ax.text(off, anchor_y + txt_offset, txt,
+                        ha="center", va="bottom",
+                        fontsize=5.5, fontweight="bold", color=color)
                 continue
-            sign = "+" if d > 0 else ""
-            txt_offset = 0.2 if d > 0 else -0.2
-            va = "bottom" if d > 0 else "top"
-            ax.text(off, d + txt_offset, f"{sign}{d:.1f}",
+            if abs(v_bar) < 0.05:
+                continue
+            sign = "+" if v_bar > 0 else ""
+            if mode == "relative":
+                txt = f"{sign}{v_bar:.0f}\\%"
+            else:
+                txt = f"{sign}{v_bar:.1f}"
+            step = max(abs(min(all_vals)), abs(max(all_vals))) * 0.02
+            txt_offset = step if v_bar > 0 else -step
+            va = "bottom" if v_bar > 0 else "top"
+            ax.text(off, v_bar + txt_offset, txt,
                     ha="center", va=va,
                     fontsize=5.5, fontweight="bold", color=color)
 
-    y_lim = max(abs(min(all_deltas)), abs(max(all_deltas))) * 1.22
-    ax.set_ylim(-y_lim, y_lim)
-
-    # Zero reference line.
-    ax.axhline(0, color="#333333", linewidth=0.9, zorder=1.5)
+    if mode == "absolute":
+        y_lim_top = max(all_vals) * 1.32
+        ax.set_ylim(0, y_lim_top)
+        text_y = y_lim_top * 0.98
+    else:
+        y_lim = max(abs(min(all_vals)), abs(max(all_vals))) * 1.38
+        ax.set_ylim(-y_lim, y_lim)
+        ax.axhline(0, color="#333333", linewidth=0.9, zorder=1.5)
+        text_y = y_lim * 0.97
 
     # Worsening-type label centered above each (worsening, recovery) pair.
     worsening_groups = [
@@ -166,7 +229,7 @@ def create_worsening_chart(test_dir, output_path=None):
         ((4, 5), "Rotated"),
     ]
     for (start, end), label in worsening_groups:
-        ax.text((start + end) / 2, y_lim * 0.96, label,
+        ax.text((start + end) / 2, text_y, label,
                 ha="center", va="top",
                 fontsize=7, color="#444444", fontstyle="italic",
                 fontweight="bold")
@@ -182,7 +245,13 @@ def create_worsening_chart(test_dir, output_path=None):
     ]
     ax.set_xticklabels(x_tick_labels, fontsize=6.5)
     ax.set_xlim(-0.5, n_conds - 0.5)
-    ax.set_ylabel(r"$\Delta$ Accuracy (\%)", fontsize=8, labelpad=2)
+    if mode == "delta":
+        ylabel = r"$\Delta$ Accuracy (\%)"
+    elif mode == "relative":
+        ylabel = r"Rel. Acc. Change (\%)"
+    else:
+        ylabel = r"Accuracy (\%)"
+    ax.set_ylabel(ylabel, fontsize=8, labelpad=2)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -208,9 +277,18 @@ def create_worsening_chart(test_dir, output_path=None):
             zoom_factor=LOGO_ZOOM.get(display_name, 0.55),
         )
 
+    extra_handles = []
+    extra_labels = []
+    if mode == "absolute":
+        extra_handles.append(
+            Line2D([0], [0], color="black",
+                   linestyle=(0, (2.5, 1.5)), linewidth=1.2)
+        )
+        extra_labels.append("Matching baseline accuracy")
+
     ax.legend(
-        legend_handles,
-        legend_labels,
+        legend_handles + extra_handles,
+        legend_labels + extra_labels,
         handler_map=handler_map,
         loc="upper center",
         bbox_to_anchor=(0.5, -0.10),
@@ -236,7 +314,12 @@ def main():
     output_dir = base / "figures"
     output_dir.mkdir(exist_ok=True)
 
-    create_worsening_chart(test_dir, output_dir / "worsening_comparison.pdf")
+    create_worsening_chart(test_dir, output_dir / "worsening_comparison.pdf",
+                           mode="delta")
+    create_worsening_chart(test_dir, output_dir / "worsening_comparison_relative.pdf",
+                           mode="relative")
+    create_worsening_chart(test_dir, output_dir / "worsening_comparison_absolute.pdf",
+                           mode="absolute")
 
 
 if __name__ == "__main__":
