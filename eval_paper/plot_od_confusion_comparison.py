@@ -18,6 +18,16 @@ MODEL_FOLDERS = [
     "Qwen3.5-397B-A17B-AWQ",
 ]
 
+ALL_MODEL_FOLDERS = [
+    "gemma-3-27b-it",
+    "gemma-4-31B-it",
+    "Qwen3.5-27B",
+    "Qwen3.5-397B-A17B-AWQ",
+    "Llama-4-Scout-17B-16E-Instruct",
+    "Mistral-Small-3.2-24B-Instruct-2506",
+    "GLM-4.6V",
+]
+
 ORDERED_TYPES = ["S", "E", "+", "N", "G", ".", "o", "*", "T", "P", "Y"]
 
 TYPE_LABELS = {
@@ -82,9 +92,11 @@ def compute_confusion_matrix(puzzles):
     return matrix
 
 
-def collect_averaged_matrix(od_dir, board_type):
+def collect_averaged_matrix(od_dir, board_type, folders=None):
+    if folders is None:
+        folders = MODEL_FOLDERS
     matrices = []
-    for folder in MODEL_FOLDERS:
+    for folder in folders:
         model_dir = od_dir / "all" / folder
         if not model_dir.exists():
             continue
@@ -118,7 +130,7 @@ SOFT_TEXT    = "#5A5A5A"
 
 
 def _draw_matrix(ax, matrix, title, show_xticks=True):
-    im = ax.imshow(matrix, cmap=CMAP, vmin=0, vmax=1.0, aspect="equal",
+    im = ax.imshow(matrix, cmap=CMAP, vmin=0, vmax=1.0, aspect="auto",
                    interpolation="nearest")
 
     n = len(ORDERED_TYPES)
@@ -167,11 +179,11 @@ def _draw_matrix(ax, matrix, title, show_xticks=True):
     return im
 
 
-def create_confusion_comparison(od_dir, output_path=None):
+def create_confusion_comparison(od_dir, output_path=None, folders=None):
     setup_plot_style(use_latex=True)
 
-    matrix_orig = collect_averaged_matrix(od_dir, "original")
-    matrix_text = collect_averaged_matrix(od_dir, "text")
+    matrix_orig = collect_averaged_matrix(od_dir, "original", folders=folders)
+    matrix_text = collect_averaged_matrix(od_dir, "text", folders=folders)
 
     if matrix_orig is None or matrix_text is None:
         print("Missing data for confusion matrices!")
@@ -179,12 +191,12 @@ def create_confusion_comparison(od_dir, output_path=None):
 
     fig, (ax1, ax2) = plt.subplots(
         2, 1,
-        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 1.50),
-        gridspec_kw={"hspace": 0.12},
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 1.25),
+        gridspec_kw={"hspace": 0.15},
     )
 
     _draw_matrix(ax1, matrix_orig, "Original Board", show_xticks=False)
-    im = _draw_matrix(ax2, matrix_text, "Text Board", show_xticks=True)
+    im = _draw_matrix(ax2, matrix_text, "Text Symbols", show_xticks=True)
 
     cbar = fig.colorbar(
         im, ax=[ax1, ax2], orientation="vertical",
@@ -215,7 +227,18 @@ def main():
     output_dir = base / "figures"
     output_dir.mkdir(exist_ok=True)
 
-    create_confusion_comparison(od_dir, output_dir / "od_confusion_comparison.pdf")
+    # Single-model view (Qwen 3.5 397B).
+    create_confusion_comparison(
+        od_dir,
+        output_dir / "od_confusion_comparison.pdf",
+        folders=MODEL_FOLDERS,
+    )
+    # Averaged across all 7 core models.
+    create_confusion_comparison(
+        od_dir,
+        output_dir / "od_confusion_comparison_all_models.pdf",
+        folders=ALL_MODEL_FOLDERS,
+    )
 
 
 if __name__ == "__main__":

@@ -203,7 +203,7 @@ def create_board_comparison_chart(sparc_dir, test_dir, output_path=None):
     n_boards = len(BOARD_TYPES)
     xlim = _shared_xlim(data)
 
-    row_height = 0.20
+    row_height = 0.14
     fig_height = (1 + n_boards) * row_height + 0.30
     fig_width = TEXT_WIDTH_INCHES
 
@@ -218,7 +218,7 @@ def create_board_comparison_chart(sparc_dir, test_dir, output_path=None):
 
     for col, d in enumerate(data):
         ax = axes[col]
-        ax.set_title(d["display_name"])
+        ax.set_title(d["display_name"], pad=2)
         color = get_model_color(d["display_name"])
 
         sparc_acc = d["sparc_acc"]
@@ -250,7 +250,7 @@ def create_board_comparison_chart(sparc_dir, test_dir, output_path=None):
         ax.invert_yaxis()
         ax.set_yticks(y_pos)
         ax.set_yticklabels(all_labels if col == 0 else [])
-        ax.set_xlabel("Accuracy (\\%)")
+        ax.set_xlabel("Accuracy (\\%)", labelpad=2)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
@@ -279,7 +279,7 @@ def create_rule_accuracy_chart(sparc_dir, od_dir, output_path=None):
     n_boards = len(BOARD_TYPES)
     xlim = _shared_xlim(data)
 
-    row_height = 0.20
+    row_height = 0.14
     fig_height = n_boards * row_height + 0.40
     fig_width = TEXT_WIDTH_INCHES
 
@@ -291,7 +291,7 @@ def create_rule_accuracy_chart(sparc_dir, od_dir, output_path=None):
 
     for col, d in enumerate(data):
         ax = axes[col]
-        ax.set_title(d["display_name"])
+        ax.set_title(d["display_name"], pad=2)
         color = get_model_color(d["display_name"])
 
         y_pos = np.arange(n_boards)
@@ -329,7 +329,7 @@ def create_rule_accuracy_chart(sparc_dir, od_dir, output_path=None):
         )
         if col == 0:
             ax.set_ylabel("Board Type", fontweight="bold")
-        ax.set_xlabel("Accuracy (\\%)")
+        ax.set_xlabel("Accuracy (\\%)", labelpad=2)
         ax.spines["top"].set_visible(False)
         ax.spines["right"].set_visible(False)
 
@@ -338,7 +338,7 @@ def create_rule_accuracy_chart(sparc_dir, od_dir, output_path=None):
             legend_handles,
             ["All Rules Correct", "Avg. Rule Accuracy"],
             loc="upper center", ncol=2, frameon=False,
-            bbox_to_anchor=(0.5, -0.05),
+            bbox_to_anchor=(0.5, -0.13),
             edgecolor="0.8", fancybox=False,
         )
 

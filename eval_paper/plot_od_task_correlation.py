@@ -26,8 +26,8 @@ from plot_config import (
 MODEL_FOLDERS = {v[0]: v[1] for v in MODEL_REGISTRY.values()}
 
 
-def collect_data(test_dir, od_dir):
-    """Return list of (display_name, board_type, od_acc, task_acc)."""
+def collect_data(test_dir, od_dir, od_metric="accuracy"):
+    """Return list of (display_name, board_type, od_metric, task_acc)."""
     points = []
     for folder, display in MODEL_FOLDERS.items():
         task_model_dir = test_dir / "all" / folder
@@ -37,25 +37,28 @@ def collect_data(test_dir, od_dir):
             continue
 
         for bt in BOARD_TYPES:
-            od_acc = read_json_metric(od_model_dir, bt, "accuracy",
+            od_val = read_json_metric(od_model_dir, bt, od_metric,
                                       prompt_type="default")
             task_acc = read_json_metric(task_model_dir, bt, "accuracy",
                                         prompt_type=DEFAULT_PROMPT)
-            if not np.isnan(od_acc) and not np.isnan(task_acc):
-                points.append((display, bt, od_acc, task_acc))
+            if not np.isnan(od_val) and not np.isnan(task_acc):
+                points.append((display, bt, od_val, task_acc))
 
     return points
 
 
-def create_correlation_chart(test_dir, od_dir, output_path=None):
+def create_correlation_chart(test_dir, od_dir, output_path=None,
+                             od_metric="accuracy",
+                             xlabel="Board Detection Acc. (\\%)",
+                             height_ratio=0.85):
     setup_plot_style(use_latex=True)
 
-    data = collect_data(test_dir, od_dir)
+    data = collect_data(test_dir, od_dir, od_metric=od_metric)
     if not data:
         print("No data found!")
         return None
 
-    fig, ax = plt.subplots(figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.85))
+    fig, ax = plt.subplots(figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * height_ratio))
 
     for display, bt, od_acc, task_acc in data:
         color = get_model_color(display)
@@ -127,7 +130,7 @@ def create_correlation_chart(test_dir, od_dir, output_path=None):
                    frameon=False, ncol=len(row),
                    handletextpad=0.4, columnspacing=0.9)
 
-    ax.set_xlabel("Board Detection Acc. (\\%)")
+    ax.set_xlabel(xlabel)
     ax.set_ylabel("Task Accuracy (\\%)")
     ax.set_ylim(bottom=-1)
     ax.set_xlim(left=max(x_arr.min() - 5, -1))
@@ -152,7 +155,22 @@ def main():
     output_dir = base / "figures"
     output_dir.mkdir(exist_ok=True)
 
-    create_correlation_chart(test_dir, od_dir, output_dir / "od_task_correlation.pdf")
+    # Full-board OD accuracy (all rules correct) vs task accuracy.
+    create_correlation_chart(
+        test_dir, od_dir,
+        output_dir / "od_task_correlation.pdf",
+        od_metric="accuracy",
+        xlabel="Board Detection Acc. (\\%)",
+        height_ratio=0.75,
+    )
+    # Average per-rule OD accuracy vs task accuracy.
+    create_correlation_chart(
+        test_dir, od_dir,
+        output_dir / "od_task_correlation_avg.pdf",
+        od_metric="fraction_average",
+        xlabel="Avg. Rule Detection Acc. (\\%)",
+        height_ratio=1.0,
+    )
 
 
 if __name__ == "__main__":

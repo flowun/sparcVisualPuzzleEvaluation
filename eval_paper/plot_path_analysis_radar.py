@@ -74,10 +74,10 @@ def _build_figure(board_avg, output_path):
     angles += angles[:1]
 
     fig, ax = plt.subplots(
-        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES),
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.8),
         subplot_kw={"projection": "polar"},
     )
-    fig.subplots_adjust(left=0.18, right=0.82, top=0.85, bottom=0.22)
+    fig.subplots_adjust(left=0.18, right=0.82, top=0.88, bottom=0.18)
 
     for bt in BOARD_ORDER:
         vals = [board_avg[bt].get(m, 0) for m in PATH_METRICS] + \
@@ -101,8 +101,8 @@ def _build_figure(board_avg, output_path):
 
     fig.legend(
         *ax.get_legend_handles_labels(),
-        loc="lower center",
-        bbox_to_anchor=(0.5, 0.02),
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.05),
         fontsize=7,
         frameon=False,
         ncol=3,

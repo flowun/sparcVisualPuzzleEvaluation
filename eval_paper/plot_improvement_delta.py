@@ -54,7 +54,7 @@ def create_delta_chart(test_dir, output_path=None):
     n = len(data)
     y = np.arange(n)
 
-    fig, ax = plt.subplots(figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.85))
+    fig, ax = plt.subplots(figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.6))
 
     for i, (name, orig, best, best_bt) in enumerate(data):
         color = get_model_color(name)

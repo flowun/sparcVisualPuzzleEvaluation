@@ -84,7 +84,7 @@ def main():
     setup_plot_style(use_latex=True)
 
     fig, ax = plt.subplots(
-        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.65)
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.45)
     )
 
     n_groups = len(IMAGE_TYPES)

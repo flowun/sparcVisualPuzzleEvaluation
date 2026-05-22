@@ -75,7 +75,7 @@ def create_difficulty_chart(test_dir, output_path=None):
 
     x = np.array(DIFFICULTY_LEVELS)
     fig, ax = plt.subplots(
-        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.85),
+        figsize=(COLUMN_WIDTH_INCHES, COLUMN_WIDTH_INCHES * 0.6),
     )
 
     for i, d in enumerate(data):
