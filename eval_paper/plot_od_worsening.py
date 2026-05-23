@@ -70,7 +70,7 @@ CONDITIONS = [
 GROUP_DIVIDERS = [1.5, 3.5]
 
 
-def collect_data(od_dir):
+def collect_data(od_dir, metric="fraction_average"):
     boards = {"original", "path_cell_annotated"}
     for board, _, baseline in CONDITIONS:
         boards.add(board)
@@ -81,13 +81,14 @@ def collect_data(od_dir):
         model_dir = od_dir / "all" / folder
         vals = {}
         for bt in boards:
-            vals[bt] = read_json_metric(model_dir, bt, "fraction_average",
+            vals[bt] = read_json_metric(model_dir, bt, metric,
                                         prompt_type="default")
         result[folder] = vals
     return result
 
 
-def create_od_worsening_chart(od_dir, output_path=None, mode="delta"):
+def create_od_worsening_chart(od_dir, output_path=None, mode="delta",
+                              metric="fraction_average"):
     """Render the OD worsening study chart.
 
     mode:
@@ -95,10 +96,15 @@ def create_od_worsening_chart(od_dir, output_path=None, mode="delta"):
         "absolute" — bars show absolute rule-detection accuracy with a short
                      black dashed segment per bar marking the matching
                      baseline. Bar labels show the signed delta.
+
+    metric:
+        "fraction_average" — mean per-rule detection accuracy.
+        "accuracy"         — fraction of boards with ALL rules detected
+                              correctly (stricter, complete OD).
     """
     setup_plot_style(use_latex=True)
 
-    data = collect_data(od_dir)
+    data = collect_data(od_dir, metric=metric)
 
     n_conds = len(CONDITIONS)
     n_models = len(MODELS)
@@ -158,8 +164,8 @@ def create_od_worsening_chart(od_dir, output_path=None, mode="delta"):
                     continue
                 ax.hlines(
                     b,
-                    off - bar_width / 2,
-                    off + bar_width / 2,
+                    off - bar_width / 2 - 0.02,
+                    off + bar_width / 2 + 0.02,
                     colors="black", linestyles=(0, (2.5, 1.5)),
                     linewidth=1.2, zorder=5,
                 )
@@ -226,10 +232,14 @@ def create_od_worsening_chart(od_dir, output_path=None, mode="delta"):
     ]
     ax.set_xticklabels(x_tick_labels, fontsize=6.5)
     ax.set_xlim(-0.5, n_conds - 0.5)
-    if mode == "absolute":
-        ax.set_ylabel(r"Rule Detection (\%)", fontsize=8, labelpad=2)
+    if metric == "accuracy":
+        metric_label = "Board Detection"
     else:
-        ax.set_ylabel(r"$\Delta$ Rule Detection (\%)", fontsize=8, labelpad=2)
+        metric_label = "Rule Detection"
+    if mode == "absolute":
+        ax.set_ylabel(rf"{metric_label} (\%)", fontsize=8, labelpad=2)
+    else:
+        ax.set_ylabel(rf"$\Delta$ {metric_label} (\%)", fontsize=8, labelpad=2)
 
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -293,9 +303,13 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     create_od_worsening_chart(od_dir, output_dir / "od_worsening_comparison.pdf",
-                              mode="delta")
+                              mode="delta", metric="fraction_average")
     create_od_worsening_chart(od_dir, output_dir / "od_worsening_comparison_absolute.pdf",
-                              mode="absolute")
+                              mode="absolute", metric="fraction_average")
+    create_od_worsening_chart(od_dir, output_dir / "od_worsening_comparison_full.pdf",
+                              mode="delta", metric="accuracy")
+    create_od_worsening_chart(od_dir, output_dir / "od_worsening_comparison_full_absolute.pdf",
+                              mode="absolute", metric="accuracy")
 
 
 if __name__ == "__main__":

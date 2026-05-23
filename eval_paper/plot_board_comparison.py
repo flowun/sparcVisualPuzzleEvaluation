@@ -204,46 +204,59 @@ def create_board_comparison_chart(sparc_dir, test_dir, output_path=None):
     xlim = _shared_xlim(data)
 
     row_height = 0.14
-    fig_height = (1 + n_boards) * row_height + 0.30
+    fig_height = n_boards * row_height + 0.30
     fig_width = TEXT_WIDTH_INCHES
 
     fig = plt.figure(figsize=(fig_width, fig_height))
     gs = fig.add_gridspec(1, n_models, wspace=0.25)
     axes = np.array([fig.add_subplot(gs[0, j]) for j in range(n_models)])
 
-    # Baseline at top, board types reversed (worst→best going down)
+    # Board types reversed (worst→best going down).
     boards_reversed = list(reversed(BOARD_TYPES))
-    all_labels = ["Baseline"] + [BOARD_LABELS[bt] for bt in boards_reversed]
-    n_rows = 1 + n_boards
+    all_labels = [BOARD_LABELS[bt] for bt in boards_reversed]
+    n_rows = n_boards
 
     for col, d in enumerate(data):
         ax = axes[col]
         ax.set_title(d["display_name"], pad=2)
         color = get_model_color(d["display_name"])
 
-        sparc_acc = d["sparc_acc"]
         board_vals = [d["board_accs"].get(bt, np.nan) for bt in boards_reversed]
 
-        all_vals = [sparc_acc] + board_vals
         y_pos = np.arange(n_rows)
 
-        bar_colors = [color] + [
+        bar_colors = [
             color if not np.isnan(v) else desaturate_color(color, 0.3)
             for v in board_vals
         ]
-        bar_data = [v if not np.isnan(v) else 0 for v in all_vals]
-        bars = ax.barh(y_pos, bar_data, color=bar_colors, height=BAR_HEIGHT)
+        bar_data = [v if not np.isnan(v) else 0 for v in board_vals]
 
-        for bar, val in zip(bars, all_vals):
+        # Highlight all board types that tie for the best per model.
+        valid = [v for v in board_vals if not np.isnan(v)]
+        best_val = max(valid) if valid else -np.inf
+        best_idxs = {
+            idx for idx, v in enumerate(board_vals)
+            if not np.isnan(v) and abs(v - best_val) < 1e-6 and best_val > 0
+        }
+        edgecolors = ["none"] * n_rows
+        linewidths = [0.0] * n_rows
+        for idx in best_idxs:
+            edgecolors[idx] = "black"
+            linewidths[idx] = 1.0
+
+        bars = ax.barh(y_pos, bar_data, color=bar_colors,
+                       edgecolor=edgecolors, linewidth=linewidths,
+                       height=BAR_HEIGHT)
+
+        for idx, (bar, val) in enumerate(zip(bars, board_vals)):
             if np.isnan(val):
                 continue
+            is_best = idx in best_idxs
+            label = f"\\textbf{{{val:.1f}}}" if is_best else f"{val:.1f}"
             ax.text(bar.get_width() + xlim * 0.02,
                     bar.get_y() + bar.get_height() / 2,
-                    f"{val:.1f}", ha="left", va="center",
-                    color="black", fontweight="bold", fontsize=7)
-
-        # Dashed separator between baseline and board rows
-        ax.axhline(0.5, color="gray", linewidth=0.8, linestyle="--")
+                    label, ha="left", va="center",
+                    color="black", fontsize=7)
 
         ax.set_xlim(0, xlim)
         ax.set_ylim(-0.5, n_rows - 0.5)
