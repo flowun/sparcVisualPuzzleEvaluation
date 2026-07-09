@@ -12,13 +12,15 @@ class CoordinateGridPlot(OriginalPlot):
                  coordinate_font_size=20,
                  pad_pixels=50,
                  extra_coordinate_info_pad_pixels=50,
-                 grid_lines=True
+                 grid_lines=True,
+                 show_labels=True
                  ):
         super().__init__(board, size=size, pad_pixels=pad_pixels+extra_coordinate_info_pad_pixels)
         self.coordinate_color = coordinate_color
         self.coordinate_font_size = coordinate_font_size
         self.extra_coordinate_info_pad_pixels = extra_coordinate_info_pad_pixels
         self.grid_lines = grid_lines
+        self.show_labels = show_labels
 
     def initialize_image(self):
         self.x_image_size -= self.extra_coordinate_info_pad_pixels
@@ -29,12 +31,13 @@ class CoordinateGridPlot(OriginalPlot):
     def render(self):
         super().render()
         # Draw coordinates on top and left side
-        for x in range(self.board.width):
-            cx, cy = self.middle_positions[0][x]
-            self._draw.text((cx - self.coordinate_font_size // 4, self.positions[0][0][1] * 1/3), str(x), fill=self.coordinate_color, font_size=self.coordinate_font_size)
-        for y in range(self.board.height):
-            cx, cy = self.middle_positions[y][0]
-            self._draw.text((self.positions[0][0][0] * 1/3, cy - self.coordinate_font_size // 2), str(y), fill=self.coordinate_color, font_size=self.coordinate_font_size)
+        if self.show_labels:
+            for x in range(self.board.width):
+                cx, cy = self.middle_positions[0][x]
+                self._draw.text((cx - self.coordinate_font_size // 4, self.positions[0][0][1] * 1/3), str(x), fill=self.coordinate_color, font_size=self.coordinate_font_size)
+            for y in range(self.board.height):
+                cx, cy = self.middle_positions[y][0]
+                self._draw.text((self.positions[0][0][0] * 1/3, cy - self.coordinate_font_size // 2), str(y), fill=self.coordinate_color, font_size=self.coordinate_font_size)
         # Draw grid lines if enabled
         if self.grid_lines:
             # Vertical lines (extend to full image height)
@@ -55,8 +58,9 @@ class CoordinateGridPlot(OriginalPlot):
 
             self._draw.line([0, 0, self.positions[0][0][0], self.positions[0][0][1]], fill=self.coordinate_color, width=1)
 
-            self._draw.text((self.positions[0][0][0] * 1/3, self.positions[0][0][1] * 2/3), "y", fill=self.coordinate_color, font_size=self.coordinate_font_size)
-            self._draw.text((self.positions[0][0][0] * 2/3, self.positions[0][0][1] * 1/3), "x", fill=self.coordinate_color, font_size=self.coordinate_font_size)
+            if self.show_labels:
+                self._draw.text((self.positions[0][0][0] * 1/3, self.positions[0][0][1] * 2/3), "y", fill=self.coordinate_color, font_size=self.coordinate_font_size)
+                self._draw.text((self.positions[0][0][0] * 2/3, self.positions[0][0][1] * 1/3), "x", fill=self.coordinate_color, font_size=self.coordinate_font_size)
 
 
 class CoordinateGridAndStartEndMarkedPlot(CoordinateGridPlot, StartEndMarkedPlot):

@@ -28,6 +28,9 @@ def get_object_detection_prompt(prompt_type, board_type, data=None):
     if prompt_type == "default":
         from .default_object_detection import get_prompt as default_od_get_prompt
         return default_od_get_prompt(data, board_type)
+    elif prompt_type == "default_legacy":  # Pre-fix prompt (step 2 contains copied path-solving instructions), kept for comparability runs
+        from .default_object_detection_legacy import get_prompt as legacy_od_get_prompt
+        return legacy_od_get_prompt(data, board_type)
     else:
         raise ValueError(f"Unknown prompt type for object detection: {prompt_type}")
 

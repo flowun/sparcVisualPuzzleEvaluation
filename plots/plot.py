@@ -13,6 +13,9 @@ def get_plot_class(plot_type, board, **kwargs):
     elif plot_type == "coordinate_grid":
         from plots.coordinate_grid_plot import CoordinateGridPlot
         return CoordinateGridPlot(board, **kwargs)
+    elif plot_type == "coordinate_grid_no_labels":
+        from plots.coordinate_grid_plot import CoordinateGridPlot
+        return CoordinateGridPlot(board, show_labels=False, **kwargs)
     elif plot_type == "coordinate_grid_and_start_end_marked":
         from plots.coordinate_grid_plot import CoordinateGridAndStartEndMarkedPlot
         return CoordinateGridAndStartEndMarkedPlot(board, **kwargs)
@@ -156,8 +159,7 @@ class Plot(ABC):
         if self._img is None:
             raise RuntimeError("Nothing to save. Call render(...) first.")
         # Fast PNG writing: low compression and no optimize pass.
-        if not os.path.exists(dir):
-            os.makedirs(f"{dir}")
+        os.makedirs(f"{dir}", exist_ok=True)
         self._img.save(f"{dir}/{filename}", format="PNG", compress_level=1, optimize=False)
 
     def show(self):
