@@ -68,16 +68,22 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# health probe
+# health probe (--noproxy: a proxy env var must never answer for localhost; -f: HTTP errors are not "ready")
 echo -n "⌛ Waiting for vLLM"
+READY=0
 for _ in {1..3600}; do
-  if curl -s "http://127.0.0.1:${PORT}/v1/models" >/dev/null; then
+  if curl -sf --noproxy '*' --connect-timeout 2 "http://127.0.0.1:${PORT}/v1/models" >/dev/null; then
+    READY=1
     echo " … ready."
     break
   fi
   printf "."
   sleep 1
 done
+if [ "$READY" -ne 1 ]; then
+  echo "ERROR: vLLM did not become ready within 3600s — aborting before evaluation." >&2
+  exit 1
+fi
 
 echo "✔ vLLM ready. Last 20 log lines:"
 
@@ -88,8 +94,13 @@ source .venv/bin/activate
 echo "Starting Python Script"
 
 # Loop over the board types we want to evaluate
-# BOARD_TYPES env var (space-separated) overrides; falls back to single BOARD_TYPE
-IFS=' ' read -r -a BOARD_TYPES <<< "${BOARD_TYPES:-$BOARD_TYPE}"
+# Priority: positional script args > BOARD_TYPES env var (space-separated) > single BOARD_TYPE
+if [ "$#" -gt 0 ]; then
+  BOARD_TYPES=("$@")
+else
+  IFS=' ' read -r -a BOARD_TYPES <<< "${BOARD_TYPES:-$BOARD_TYPE}"
+fi
+echo "Effective config: MODEL=$MODEL PROMPT_TYPE=$PROMPT_TYPE BOARD_TYPES=${BOARD_TYPES[*]}"
 
 for BT in "${BOARD_TYPES[@]}"; do
   echo "Evaluating board type: $BT"
