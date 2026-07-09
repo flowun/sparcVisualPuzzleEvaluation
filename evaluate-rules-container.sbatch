@@ -88,7 +88,8 @@ source .venv/bin/activate
 echo "Starting Python Script"
 
 # Loop over the board types we want to evaluate
-BOARD_TYPES=("low_contrast" "low_contrast_and_path_cell_annotated" "low_resolution" "low_resolution_and_path_cell_annotated" "rotated" "rotated_and_path_cell_annotated")
+# BOARD_TYPES env var (space-separated) overrides; falls back to single BOARD_TYPE
+IFS=' ' read -r -a BOARD_TYPES <<< "${BOARD_TYPES:-$BOARD_TYPE}"
 
 for BT in "${BOARD_TYPES[@]}"; do
   echo "Evaluating board type: $BT"

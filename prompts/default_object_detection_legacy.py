@@ -35,7 +35,7 @@ Your task is to provide an array of all objects present in the puzzle grid follo
 
 ## Task & Output Format
 1. **Identifying Objects:** Analyze the grid to identify the coordinates of all objects and non-objects. Keep in mind that rule cells are guaranteed to be located at coordinates where both ‘x‘ and ‘y‘ are odd.
-2. **Identify Object Colors and Shapes:** For every detected object, determine its color code and, where applicable, its shape: the number of triangles (A-D) and the exact shape string for polyshapes and negative polyshapes. Double check that cells where both coordinates are odd are treated as rule cells, not path cells.
+2. **Identify Object Colors and Shapes:** Determine the valid path from the Start Node to the End Node that satisfies all rules. Double check that the path doesn't go through any rule cells (where both coordinates are odd). This is the most common beginner mistake.
 3. **Explain Reasoning:** For all coordinates, write down objects, colors, shapes and explain your reasoning if things were unclear.
 4. **Provide Solution Array:** After the reasoning, output the exact marker string ‘####‘ followed immediately by the solution array as a list of list of strings (use '' to indicate a string). Include the abbreviation for all objects and all non-objects at all coordinates in the specified format. The output *MUST* follow this format to be correctly parsed.
 **Example Solution Format:**
