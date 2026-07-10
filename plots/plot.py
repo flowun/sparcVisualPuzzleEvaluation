@@ -16,6 +16,9 @@ def get_plot_class(plot_type, board, **kwargs):
     elif plot_type == "coordinate_grid_no_labels":
         from plots.coordinate_grid_plot import CoordinateGridPlot
         return CoordinateGridPlot(board, show_labels=False, **kwargs)
+    elif plot_type == "grid_lines_only":
+        from plots.grid_lines_only_plot import GridLinesOnlyPlot
+        return GridLinesOnlyPlot(board, **kwargs)
     elif plot_type == "coordinate_grid_and_start_end_marked":
         from plots.coordinate_grid_plot import CoordinateGridAndStartEndMarkedPlot
         return CoordinateGridAndStartEndMarkedPlot(board, **kwargs)
